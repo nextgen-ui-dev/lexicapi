@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/lexica-app/lexicapi/app"
+	"github.com/lexica-app/lexicapi/app/article"
 	"github.com/lexica-app/lexicapi/db"
 	"github.com/rs/zerolog/log"
 )
@@ -25,12 +26,18 @@ func main() {
 
 	app.ConfigureLogger(config)
 
-	_ = db.CreateConnPool(config.DbDsn)
+	pool := db.CreateConnPool(config.DbDsn)
+	article.SetPool(pool)
 
 	r := chi.NewRouter()
 	r.Use(app.ReqLoggerMiddleware)
 	r.Use(middleware.Recoverer)
 	r.Get("/", heartbeat)
+
+	// Admin Routes
+	r.Group(func(r chi.Router) {
+		r.Mount("/admin/article", article.AdminRouter())
+	})
 
 	log.Info().Msgf("Running server on port %s in %s mode...", config.Port, config.Env)
 	http.ListenAndServe(":"+config.Port, r)
