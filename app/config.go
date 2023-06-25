@@ -9,10 +9,9 @@ type Config struct {
 	Port string `mapstructure:"PORT"`
 }
 
-func SetConfig() (config Config, err error) {
-	viper.AddConfigPath("../")
-	viper.SetConfigName(".env")
-	viper.SetEnvPrefix("")
+func LoadConfig() (config Config, err error) {
+	viper.AddConfigPath("./")
+	viper.SetConfigFile(".env")
 
 	viper.AutomaticEnv()
 

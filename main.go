@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+	stdlog "log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/lexica-app/lexicapi/app"
+	"github.com/rs/zerolog/log"
 )
 
 func heartbeat(w http.ResponseWriter, r *http.Request) {
@@ -15,14 +17,18 @@ func heartbeat(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	config, err := app.SetConfig()
+	config, err := app.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		stdlog.Fatal("Failed to load config:", err)
 	}
 
+	app.ConfigureLogger()
+
 	r := chi.NewRouter()
+	r.Use(app.ReqLoggerMiddleware)
+	r.Use(middleware.Recoverer)
 	r.Get("/", heartbeat)
 
-	log.Println("Running server on port", config.Port, "in", config.Env, "mode...")
+	log.Info().Msgf("Running server on port %s in %s mode...", config.Port, config.Env)
 	http.ListenAndServe(":"+config.Port, r)
 }
