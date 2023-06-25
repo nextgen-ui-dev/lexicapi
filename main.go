@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	stdlog "log"
 	"net/http"
 
@@ -12,11 +11,6 @@ import (
 	"github.com/lexica-app/lexicapi/db"
 	"github.com/rs/zerolog/log"
 )
-
-func heartbeat(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"message": "OK!"})
-}
 
 func main() {
 	config, err := app.LoadConfig()
@@ -32,7 +26,11 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(app.ReqLoggerMiddleware)
 	r.Use(middleware.Recoverer)
-	r.Get("/", heartbeat)
+
+	r.NotFound(app.NotFound)
+	r.MethodNotAllowed(app.MethodNotAllowed)
+
+	r.Get("/", app.Heartbeat)
 
 	// Admin Routes
 	r.Group(func(r chi.Router) {
