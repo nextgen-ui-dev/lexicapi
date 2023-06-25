@@ -6,8 +6,10 @@ require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/jackc/pgx/v5 v5.4.1
+	github.com/oklog/ulid/v2 v2.1.0
 	github.com/rs/zerolog v1.29.1
 	github.com/spf13/viper v1.16.0
+	gopkg.in/guregu/null.v4 v4.0.0
 )
 
 require (
