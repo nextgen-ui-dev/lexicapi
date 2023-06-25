@@ -6,6 +6,9 @@ install:
 run:
 	go run main.go
 
+dev:
+	air
+
 build:
 	go build -o bin/main main.go
 
