@@ -22,7 +22,7 @@ func main() {
 		stdlog.Fatal("Failed to load config:", err)
 	}
 
-	app.ConfigureLogger()
+	app.ConfigureLogger(config)
 
 	r := chi.NewRouter()
 	r.Use(app.ReqLoggerMiddleware)

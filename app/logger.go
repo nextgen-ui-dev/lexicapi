@@ -1,6 +1,7 @@
 package app
 
 import (
+	"io"
 	stdlog "log"
 	"net/http"
 	"os"
@@ -13,7 +14,7 @@ import (
 
 var HttpLogger zerolog.Logger
 
-func ConfigureLogger() {
+func ConfigureLogger(c Config) {
 	if _, err := os.Stat("log"); os.IsNotExist(err) {
 		os.Mkdir("log", os.ModePerm)
 	}
@@ -26,7 +27,12 @@ func ConfigureLogger() {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	zerolog.TimeFieldFormat = time.RFC3339
 	zerolog.MessageFieldName = "msg"
-	mw := zerolog.MultiLevelWriter(os.Stdout, logFile)
+
+	var stdout io.Writer = os.Stdout
+	if c.Env == "local" {
+		stdout = zerolog.ConsoleWriter{Out: os.Stdout}
+	}
+	mw := zerolog.MultiLevelWriter(stdout, logFile)
 	logger := zerolog.New(mw).With().Timestamp().Caller().Stack().Logger()
 
 	log.Logger = logger
