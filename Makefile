@@ -1,4 +1,4 @@
-.PHONY: build
+.PHONY: build migrate migrate-down migrate-fix
 
 install:
 	go mod tidy
@@ -29,3 +29,6 @@ migrate:
 
 migrate-down:
 	go run db/migrations/migrate.go -action down $(filter-out $@,$(MAKECMDGOALS))
+
+migrate-fix:
+	go run db/migrations/migrate.go -action force -version $(filter-out $@,$(MAKECMDGOALS))

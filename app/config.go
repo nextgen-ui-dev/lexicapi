@@ -10,6 +10,7 @@ type Config struct {
 	Env  string `mapstructure:"ENV"`
 	Port string `mapstructure:"PORT"`
 
+	DbUrl  string `mapstructure:"DB_URL"`
 	DbHost string `mapstructure:"DB_HOST"`
 	DbPort string `mapstructure:"DB_PORT"`
 	DbName string `mapstructure:"DB_NAME"`
