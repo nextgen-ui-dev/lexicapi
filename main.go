@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/lexica-app/lexicapi/app"
+	"github.com/lexica-app/lexicapi/db"
 	"github.com/rs/zerolog/log"
 )
 
@@ -23,6 +24,8 @@ func main() {
 	}
 
 	app.ConfigureLogger(config)
+
+	_ = db.CreateConnPool(config.DbDsn)
 
 	r := chi.NewRouter()
 	r.Use(app.ReqLoggerMiddleware)

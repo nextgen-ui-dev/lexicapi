@@ -14,7 +14,7 @@ services:
     volumes:
       - lexicadb:/var/lib/postgresql/data
     ports:
-      - 5433:5432
+      - $DB_HOST:$DB_PORT:5432
 
 volumes:
   lexicadb:
