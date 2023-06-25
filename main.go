@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/lexica-app/lexicapi/app"
 )
 
 func heartbeat(w http.ResponseWriter, r *http.Request) {
@@ -13,8 +15,14 @@ func heartbeat(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	config, err := app.SetConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	r := chi.NewRouter()
 	r.Get("/", heartbeat)
 
-	http.ListenAndServe(":8080", r)
+	log.Println("Running server on port", config.Port, "in", config.Env, "mode...")
+	http.ListenAndServe(":"+config.Port, r)
 }
