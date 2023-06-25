@@ -8,11 +8,6 @@ import (
 )
 
 func createArticleCategoryHandler(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		app.WriteHttpError(w, http.StatusBadRequest, err)
-		return
-	}
-
 	ctx := r.Context()
 
 	var body createArticleCategoryReq
