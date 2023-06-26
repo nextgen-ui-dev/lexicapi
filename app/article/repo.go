@@ -51,7 +51,7 @@ func saveArticleCategory(ctx context.Context, tx pgx.Tx, category ArticleCategor
 }
 
 func deleteArticleCategoryById(ctx context.Context, tx pgx.Tx, id ulid.ULID) (err error) {
-	q := "UPDATE article_categories SET is_deleted = TRUE, updated_at = NOW() WHERE id = $1 AND is_deleted = FALSE"
+	q := "UPDATE article_categories SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL"
 
 	_, err = tx.Exec(ctx, q, id)
 	if err != nil {

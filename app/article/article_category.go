@@ -12,7 +12,7 @@ type ArticleCategory struct {
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt null.Time `json:"updated_at"`
-	IsDeleted bool      `json:"is_deleted"`
+	DeletedAt null.Time `json:"deleted_at"`
 }
 
 func NewArticleCategory(name string) (category ArticleCategory, err error) {

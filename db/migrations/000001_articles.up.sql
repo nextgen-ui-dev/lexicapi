@@ -1,10 +1,11 @@
 CREATE TABLE IF NOT EXISTS article_categories (
   id BYTEA NOT NULL,
-  name VARCHAR(100) UNIQUE NOT NULL,
+  name VARCHAR(100) NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ,
-  is_deleted BOOLEAN DEFAULT FALSE NOT NULL,
+  deleted_at TIMESTAMPTZ,
 
+  CONSTRAINT article_categories_name_unique UNIQUE NULLS NOT DISTINCT (name, deleted_at),
   PRIMARY KEY(id)
 );
 
@@ -19,7 +20,7 @@ CREATE TABLE IF NOT EXISTS articles (
   is_published BOOLEAN DEFAULT FALSE NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ,
-  is_deleted BOOLEAN DEFAULT FALSE NOT NULL,
+  deleted_at TIMESTAMPTZ,
 
   PRIMARY KEY(id)
 );
@@ -32,7 +33,7 @@ CREATE TABLE IF NOT EXISTS article_texts (
   is_adapted BOOLEAN NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ,
-  is_deleted BOOLEAN DEFAULT FALSE NOT NULL,
+  deleted_at TIMESTAMPTZ,
 
   PRIMARY KEY(id)
 );
