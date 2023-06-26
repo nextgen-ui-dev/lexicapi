@@ -60,3 +60,30 @@ func createArticleCategory(ctx context.Context, name string) (category ArticleCa
 
 	return category, nil
 }
+
+func deleteArticleCategory(ctx context.Context, idStr string) (err error) {
+	id, err := validateArticleCategoryId(idStr)
+	if err != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to delete article category")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	err = deleteArticleCategoryById(ctx, tx, id)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to delete article category")
+		return
+	}
+
+	return nil
+}

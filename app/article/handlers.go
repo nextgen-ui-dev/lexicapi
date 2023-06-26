@@ -52,3 +52,21 @@ func createArticleCategoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.WriteHttpBodyJson(w, http.StatusCreated, category)
 }
+
+func deleteArticleCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id := chi.URLParam(r, "id")
+	if err := deleteArticleCategory(ctx, id); err != nil {
+		switch err {
+		case ErrInvalidArticleCategoryId:
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		default:
+			app.WriteHttpError(w, http.StatusInternalServerError, err)
+		}
+
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
