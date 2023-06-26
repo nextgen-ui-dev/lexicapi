@@ -6,6 +6,7 @@ func AdminRouter() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Post("/category", createArticleCategoryHandler)
+	r.Get("/category/{id}", getArticleCategoryByIdHandler)
 
 	return r
 }

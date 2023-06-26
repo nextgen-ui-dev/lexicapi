@@ -3,6 +3,7 @@ module github.com/lexica-app/lexicapi
 go 1.20
 
 require (
+	github.com/georgysavva/scany/v2 v2.0.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/jackc/pgx/v5 v5.4.1
