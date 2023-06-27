@@ -61,3 +61,26 @@ func deleteArticleCategoryById(ctx context.Context, tx pgx.Tx, id ulid.ULID) (er
 
 	return nil
 }
+
+func updateArticleCategoryById(ctx context.Context, tx pgx.Tx, id ulid.ULID, name string) (category ArticleCategory, err error) {
+	q := "UPDATE article_categories SET name = $2, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING *"
+
+	err = pgxscan.Get(ctx, tx, &category, q, id, name)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return category, ErrArticleCategoryNameExists
+			}
+		}
+
+		if err.Error() == "scanning one: no rows in result set" {
+			return category, ErrArticleCategoryDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to update article category")
+		return category, err
+	}
+
+	return category, nil
+}

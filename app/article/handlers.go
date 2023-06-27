@@ -70,3 +70,32 @@ func deleteArticleCategoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func updateArticleCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id := chi.URLParam(r, "id")
+
+	var body updateArticleCategoryReq
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.WriteHttpError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	category, err := updateArticleCategory(ctx, id, body.Name)
+	if err != nil {
+		switch err {
+		case ErrArticleCategoryNameTooLong, ErrArticleCategoryNameEmpty,
+			ErrInvalidArticleCategoryId, ErrArticleCategoryNameExists:
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case ErrArticleCategoryDoesNotExist:
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		default:
+			app.WriteHttpError(w, http.StatusInternalServerError, err)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, category)
+}

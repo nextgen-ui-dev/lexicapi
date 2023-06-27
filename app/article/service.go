@@ -87,3 +87,33 @@ func deleteArticleCategory(ctx context.Context, idStr string) (err error) {
 
 	return nil
 }
+
+func updateArticleCategory(ctx context.Context, idStr, name string) (category ArticleCategory, err error) {
+	id, err := validateArticleCategoryId(idStr)
+	if err != nil {
+		return
+	}
+	if err = validateArticleCategoryName(name); err != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to update article category")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	category, err = updateArticleCategoryById(ctx, tx, id, name)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to update article category")
+		return
+	}
+
+	return category, nil
+}
