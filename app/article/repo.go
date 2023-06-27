@@ -16,8 +16,20 @@ var (
 	ErrArticleCategoryDoesNotExist = errors.New("Article category does not exist")
 )
 
+func findArticleCategories(ctx context.Context, tx pgx.Tx, search string, limit uint) (categories []*ArticleCategory, err error) {
+	q := "SELECT * FROM article_categories WHERE name ILIKE '%' || $1 || '%' AND deleted_at IS NULL LIMIT $2"
+
+	categories = make([]*ArticleCategory, limit)
+	if err = pgxscan.Select(ctx, tx, &categories, q, search, limit); err != nil {
+		log.Err(err).Msg("Failed to find article categories")
+		return
+	}
+
+	return categories, nil
+}
+
 func findArticleCategoryById(ctx context.Context, tx pgx.Tx, id ulid.ULID) (category ArticleCategory, err error) {
-	q := "SELECT * FROM article_categories WHERE id = $1"
+	q := "SELECT * FROM article_categories WHERE id = $1 AND deleted_at IS NULL"
 
 	if err = pgxscan.Get(ctx, tx, &category, q, id); err != nil {
 		if err.Error() == "scanning one: no rows in result set" {

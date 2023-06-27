@@ -2,9 +2,34 @@ package article
 
 import (
 	"context"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 )
+
+func getArticleCategories(ctx context.Context, query string, limit uint) (categories []*ArticleCategory, err error) {
+	query = strings.TrimSpace(query)
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to get article categories")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	categories, err = findArticleCategories(ctx, tx, query, limit)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to get article categories")
+		return
+	}
+
+	return categories, nil
+}
 
 func getArticleCategoryById(ctx context.Context, idStr string) (category ArticleCategory, err error) {
 	id, err := validateArticleCategoryId(idStr)

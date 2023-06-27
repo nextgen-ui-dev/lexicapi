@@ -3,10 +3,36 @@ package article
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/lexica-app/lexicapi/app"
 )
+
+func getArticleCategoriesHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	query := r.URL.Query().Get("q")
+	limitStr := r.URL.Query().Get("limit")
+
+	// Don't throw error to client just because of misinputs
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit <= 0 {
+		limit = 100
+	}
+
+	categories, err := getArticleCategories(ctx, query, uint(limit))
+	if err != nil {
+		switch err {
+		default:
+			app.WriteHttpError(w, http.StatusInternalServerError, err)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, categories)
+}
 
 func getArticleCategoryByIdHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
