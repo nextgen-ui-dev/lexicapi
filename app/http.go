@@ -28,6 +28,14 @@ func WriteHttpError(w http.ResponseWriter, status int, err error) {
 	json.NewEncoder(w).Encode(map[string]string{"message": err.Error()})
 }
 
+func WriteHttpErrors(w http.ResponseWriter, status int, errs map[string]error) {
+	res := make(map[string]string)
+	for field, err := range errs {
+		res[field] = err.Error()
+	}
+	WriteHttpBodyJson(w, status, res)
+}
+
 func Heartbeat(w http.ResponseWriter, r *http.Request) {
 	WriteHttpBodyJson(w, http.StatusOK, map[string]string{"message": "OK!"})
 }

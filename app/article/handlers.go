@@ -125,3 +125,31 @@ func updateArticleCategoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.WriteHttpBodyJson(w, http.StatusOK, category)
 }
+
+func createArticleHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var body createArticleReq
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.WriteHttpError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	article, errs, err := createArticle(ctx, body)
+	if errs != nil {
+		app.WriteHttpErrors(w, http.StatusBadRequest, errs)
+		return
+	}
+	if err != nil {
+		switch err {
+		case ErrArticleCategoryDoesNotExist:
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		default:
+			app.WriteHttpError(w, http.StatusInternalServerError, err)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusCreated, article)
+}

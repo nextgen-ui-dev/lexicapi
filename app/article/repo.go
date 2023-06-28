@@ -96,3 +96,36 @@ func updateArticleCategoryById(ctx context.Context, tx pgx.Tx, id ulid.ULID, nam
 
 	return category, nil
 }
+
+func saveArticle(ctx context.Context, tx pgx.Tx, article Article) (Article, error) {
+	if _, err := findArticleCategoryById(ctx, tx, article.CategoryId); err != nil {
+		return article, err
+	}
+
+	q := `
+  INSERT INTO articles(id, category_id, title, thumbnail_url, original_url, source, author, is_published) VALUES
+  ($1, $2, $3, $4, $5, $6, $7, $8)
+  RETURNING *
+  `
+
+	var newArticle Article
+	if err := pgxscan.Get(
+		ctx,
+		tx,
+		&newArticle,
+		q,
+		article.Id,
+		article.CategoryId,
+		article.Title,
+		article.ThumbnailUrl,
+		article.OriginalUrl,
+		article.Source,
+		article.Author,
+		article.IsPublished,
+	); err != nil {
+		log.Err(err).Msg("Failed to save article")
+		return newArticle, err
+	}
+
+	return newArticle, nil
+}

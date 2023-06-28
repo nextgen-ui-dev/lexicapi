@@ -142,3 +142,30 @@ func updateArticleCategory(ctx context.Context, idStr, name string) (category Ar
 
 	return category, nil
 }
+
+func createArticle(ctx context.Context, body createArticleReq) (article Article, errs map[string]error, err error) {
+	article, errs = NewArticle(body.CategoryId, body.Title, body.ThumbnailUrl, body.OriginalUrl, body.Source, body.Author, body.IsPublished)
+	if errs != nil {
+		return article, errs, nil
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to create article")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	article, err = saveArticle(ctx, tx, article)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to create article")
+		return
+	}
+
+	return article, nil, nil
+}
