@@ -1,16 +1,16 @@
 package article
 
 import (
-	"errors"
 	"strings"
 
+	"github.com/jellydator/validation"
 	"github.com/oklog/ulid/v2"
 )
 
 var (
-	ErrArticleCategoryNameTooLong = errors.New("Article category can't be longer than 100 characters")
-	ErrArticleCategoryNameEmpty   = errors.New("Article category can't be empty")
-	ErrInvalidArticleCategoryId   = errors.New("Invalid article category id")
+	ErrArticleCategoryNameTooLong = validation.NewError("article:category_name_too_long", "Category name can't be longer than 100 characters")
+	ErrArticleCategoryNameEmpty   = validation.NewError("article:category_name_empty", "Article category can't be empty")
+	ErrInvalidArticleCategoryId   = validation.NewError("article:invalid_category_id", "Invalid article category id")
 )
 
 func validateArticleCategoryId(idStr string) (id ulid.ULID, err error) {
@@ -24,12 +24,9 @@ func validateArticleCategoryId(idStr string) (id ulid.ULID, err error) {
 
 func validateArticleCategoryName(name string) error {
 	name = strings.TrimSpace(name)
-	if name == "" {
-		return ErrArticleCategoryNameEmpty
-	}
-	if len(name) > 100 {
-		return ErrArticleCategoryNameTooLong
-	}
-
-	return nil
+	return validation.Validate(
+		&name,
+		validation.Required.ErrorObject(ErrArticleCategoryNameEmpty),
+		validation.Length(1, 100).ErrorObject(ErrArticleCategoryNameTooLong),
+	)
 }
