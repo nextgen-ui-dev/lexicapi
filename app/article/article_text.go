@@ -7,6 +7,14 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
+type ArticleTextDifficultyPreset string
+
+const (
+	ADVANCED     ArticleTextDifficultyPreset = "ADVANCED"
+	INTERMEDIATE                             = "INTERMEDIATE"
+	EASY                                     = "EASY"
+)
+
 type ArticleText struct {
 	Id         ulid.ULID `json:"id"`
 	ArticleId  ulid.ULID `json:"article_id"`

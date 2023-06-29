@@ -11,11 +11,12 @@ type updateArticleCategoryReq struct {
 }
 
 type createArticleReq struct {
-	CategoryId   string      `json:"category_id"`
-	Title        string      `json:"title"`
-	ThumbnailUrl null.String `json:"thumbnail_url"`
-	OriginalUrl  string      `json:"original_url"`
-	Source       string      `json:"source"`
-	Author       null.String `json:"author"`
-	IsPublished  bool        `json:"is_published"`
+	CategoryId      string      `json:"category_id"`
+	Title           string      `json:"title"`
+	ThumbnailUrl    null.String `json:"thumbnail_url"`
+	OriginalUrl     string      `json:"original_url"`
+	Source          string      `json:"source"`
+	Author          null.String `json:"author"`
+	IsPublished     bool        `json:"is_published"`
+	OriginalContent string      `json:"original_content"`
 }

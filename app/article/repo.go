@@ -132,6 +132,38 @@ func saveArticle(ctx context.Context, tx pgx.Tx, article Article) (Article, erro
 	return newArticle, nil
 }
 
+func saveArticleText(ctx context.Context, tx pgx.Tx, text ArticleText) (ArticleText, error) {
+	if _, err := findArticleById(ctx, tx, text.ArticleId); err != nil {
+		return text, err
+	}
+
+	q := `INSERT INTO article_texts(id, article_id, content, difficulty, is_adapted, created_at) VALUES
+  ($1, $2, $3, $4, $5, $6)
+  ON CONFLICT(id)
+  DO UPDATE SET article_id = $2, content = $3, difficulty = $4, is_adapted = $5, updated_at = $6
+  RETURNING *
+  `
+
+	var newText ArticleText
+	if err := pgxscan.Get(
+		ctx,
+		tx,
+		&newText,
+		q,
+		text.Id,
+		text.ArticleId,
+		text.Content,
+		text.Difficulty,
+		text.IsAdapted,
+		text.CreatedAt,
+	); err != nil {
+		log.Err(err).Msg("Failed to save article text")
+		return text, err
+	}
+
+	return newText, nil
+}
+
 func findArticleById(ctx context.Context, tx pgx.Tx, id ulid.ULID) (article Article, err error) {
 	q := "SELECT * FROM articles WHERE id = $1 AND deleted_at IS NULL"
 

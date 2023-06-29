@@ -143,10 +143,10 @@ func updateArticleCategory(ctx context.Context, idStr, name string) (category Ar
 	return category, nil
 }
 
-func createArticle(ctx context.Context, body createArticleReq) (article Article, errs map[string]error, err error) {
-	article, errs = NewArticle(body.CategoryId, body.Title, body.ThumbnailUrl, body.OriginalUrl, body.Source, body.Author, body.IsPublished)
+func createArticle(ctx context.Context, body createArticleReq) (articleDetail ArticleDetail, errs map[string]error, err error) {
+	article, errs := NewArticle(body.CategoryId, body.Title, body.ThumbnailUrl, body.OriginalUrl, body.Source, body.Author, body.IsPublished)
 	if errs != nil {
-		return article, errs, nil
+		return articleDetail, errs, nil
 	}
 
 	tx, err := pool.Begin(ctx)
@@ -162,12 +162,26 @@ func createArticle(ctx context.Context, body createArticleReq) (article Article,
 		return
 	}
 
+	originalText, errs := NewArticleText(
+		article.Id.String(),
+		body.OriginalContent,
+		string(ADVANCED),
+		false,
+	)
+	if errs != nil {
+		return articleDetail, errs, nil
+	}
+	originalText, err = saveArticleText(ctx, tx, originalText)
+	if err != nil {
+		return
+	}
+
 	if err = tx.Commit(ctx); err != nil {
 		log.Err(err).Msg("Failed to create article")
 		return
 	}
 
-	return article, nil, nil
+	return ArticleDetail{Article: article, Texts: map[string]ArticleText{string(EASY): originalText}}, nil, nil
 }
 
 func getArticleById(ctx context.Context, idStr string) (article Article, err error) {
