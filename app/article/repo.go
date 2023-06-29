@@ -178,3 +178,18 @@ func findArticleById(ctx context.Context, tx pgx.Tx, id ulid.ULID) (article Arti
 
 	return article, nil
 }
+
+func findArticleTextsByArticleId(ctx context.Context, tx pgx.Tx, articleId ulid.ULID) (texts []*ArticleText, err error) {
+	if _, err := findArticleById(ctx, tx, articleId); err != nil {
+		return texts, err
+	}
+
+	q := "SELECT * FROM article_texts WHERE article_id = $1 AND deleted_at IS NULL"
+
+	if err = pgxscan.Select(ctx, tx, &texts, q, articleId); err != nil {
+		log.Err(err).Msg("Failed to find article texts")
+		return
+	}
+
+	return texts, nil
+}

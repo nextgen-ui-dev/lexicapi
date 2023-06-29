@@ -184,7 +184,7 @@ func createArticle(ctx context.Context, body createArticleReq) (articleDetail Ar
 	return ArticleDetail{Article: article, Texts: map[string]ArticleText{originalText.Difficulty: originalText}}, nil, nil
 }
 
-func getArticleById(ctx context.Context, idStr string) (article Article, err error) {
+func getArticleById(ctx context.Context, idStr string) (articleDetail ArticleDetail, err error) {
 	id, err := validateArticleId(idStr)
 	if err != nil {
 		return
@@ -198,7 +198,12 @@ func getArticleById(ctx context.Context, idStr string) (article Article, err err
 
 	defer tx.Rollback(ctx)
 
-	article, err = findArticleById(ctx, tx, id)
+	article, err := findArticleById(ctx, tx, id)
+	if err != nil {
+		return
+	}
+
+	texts, err := findArticleTextsByArticleId(ctx, tx, article.Id)
 	if err != nil {
 		return
 	}
@@ -208,5 +213,10 @@ func getArticleById(ctx context.Context, idStr string) (article Article, err err
 		return
 	}
 
-	return article, nil
+	textMap := make(map[string]ArticleText)
+	for _, text := range texts {
+		textMap[text.Difficulty] = *text
+	}
+
+	return ArticleDetail{Article: article, Texts: textMap}, nil
 }
