@@ -14,6 +14,7 @@ import (
 var (
 	ErrArticleCategoryNameExists   = errors.New("Article category with that name exists")
 	ErrArticleCategoryDoesNotExist = errors.New("Article category does not exist")
+	ErrArticleDoesNotExist         = errors.New("Article does not exist")
 )
 
 func findArticleCategories(ctx context.Context, tx pgx.Tx, search string, limit uint) (categories []*ArticleCategory, err error) {
@@ -103,8 +104,8 @@ func saveArticle(ctx context.Context, tx pgx.Tx, article Article) (Article, erro
 	}
 
 	q := `
-  INSERT INTO articles(id, category_id, title, thumbnail_url, original_url, source, author, is_published) VALUES
-  ($1, $2, $3, $4, $5, $6, $7, $8)
+  INSERT INTO articles(id, category_id, title, thumbnail_url, original_url, source, author, is_published, created_at) VALUES
+  ($1, $2, $3, $4, $5, $6, $7, $8, $9)
   RETURNING *
   `
 
@@ -122,10 +123,26 @@ func saveArticle(ctx context.Context, tx pgx.Tx, article Article) (Article, erro
 		article.Source,
 		article.Author,
 		article.IsPublished,
+		article.CreatedAt,
 	); err != nil {
 		log.Err(err).Msg("Failed to save article")
 		return newArticle, err
 	}
 
 	return newArticle, nil
+}
+
+func findArticleById(ctx context.Context, tx pgx.Tx, id ulid.ULID) (article Article, err error) {
+	q := "SELECT * FROM articles WHERE id = $1 AND deleted_at IS NULL"
+
+	if err = pgxscan.Get(ctx, tx, &article, q, id); err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return article, ErrArticleDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to find article by id")
+		return article, err
+	}
+
+	return article, nil
 }

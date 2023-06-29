@@ -12,10 +12,6 @@ var (
 	ErrInternalServerError = errors.New("Something went wrong on our side")
 )
 
-type httpError[MsgType string | map[string]string] struct {
-	Message MsgType `json:"message"`
-}
-
 func WriteHttpBodyJson(w http.ResponseWriter, status int, body any) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -30,7 +26,7 @@ func WriteHttpError(w http.ResponseWriter, status int, err error) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	json.NewEncoder(w).Encode(httpError[string]{Message: err.Error()})
+	json.NewEncoder(w).Encode(map[string]string{"message": err.Error()})
 }
 
 func WriteHttpErrors(w http.ResponseWriter, status int, errs map[string]error) {
@@ -38,7 +34,7 @@ func WriteHttpErrors(w http.ResponseWriter, status int, errs map[string]error) {
 	for field, err := range errs {
 		res[field] = err.Error()
 	}
-	WriteHttpBodyJson(w, status, httpError[map[string]string]{Message: res})
+	WriteHttpBodyJson(w, status, map[string]map[string]string{"message": res})
 }
 
 func WriteHttpInternalServerError(w http.ResponseWriter) {

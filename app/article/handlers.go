@@ -2,6 +2,7 @@ package article
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -40,10 +41,10 @@ func getArticleCategoryByIdHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	category, err := getArticleCategoryById(ctx, id)
 	if err != nil {
-		switch err {
-		case ErrInvalidArticleCategoryId:
+		switch {
+		case errors.As(err, &ErrInvalidArticleCategoryId):
 			app.WriteHttpError(w, http.StatusBadRequest, err)
-		case ErrArticleCategoryDoesNotExist:
+		case errors.Is(err, ErrArticleCategoryDoesNotExist):
 			app.WriteHttpError(w, http.StatusNotFound, err)
 		default:
 			app.WriteHttpInternalServerError(w)
@@ -152,4 +153,25 @@ func createArticleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.WriteHttpBodyJson(w, http.StatusCreated, article)
+}
+
+func getArticleByIdHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id := chi.URLParam(r, "id")
+	article, err := getArticleById(ctx, id)
+	if err != nil {
+		switch {
+		case errors.As(err, &ErrInvalidArticleId):
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case errors.Is(err, ErrArticleDoesNotExist):
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, article)
 }

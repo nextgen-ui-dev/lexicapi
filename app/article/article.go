@@ -67,5 +67,6 @@ func NewArticle(
 		Source:       source,
 		Author:       author,
 		IsPublished:  isPublished,
+		CreatedAt:    time.Now(),
 	}, nil
 }
