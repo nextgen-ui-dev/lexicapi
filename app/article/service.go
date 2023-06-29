@@ -181,7 +181,7 @@ func createArticle(ctx context.Context, body createArticleReq) (articleDetail Ar
 		return
 	}
 
-	return ArticleDetail{Article: article, Texts: map[string]ArticleText{string(EASY): originalText}}, nil, nil
+	return ArticleDetail{Article: article, Texts: map[string]ArticleText{originalText.Difficulty: originalText}}, nil, nil
 }
 
 func getArticleById(ctx context.Context, idStr string) (article Article, err error) {
