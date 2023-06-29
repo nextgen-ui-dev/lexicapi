@@ -25,7 +25,7 @@ func getArticleCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch err {
 		default:
-			app.WriteHttpError(w, http.StatusInternalServerError, err)
+			app.WriteHttpInternalServerError(w)
 		}
 
 		return
@@ -46,7 +46,7 @@ func getArticleCategoryByIdHandler(w http.ResponseWriter, r *http.Request) {
 		case ErrArticleCategoryDoesNotExist:
 			app.WriteHttpError(w, http.StatusNotFound, err)
 		default:
-			app.WriteHttpError(w, http.StatusInternalServerError, err)
+			app.WriteHttpInternalServerError(w)
 		}
 
 		return
@@ -70,7 +70,7 @@ func createArticleCategoryHandler(w http.ResponseWriter, r *http.Request) {
 		case ErrArticleCategoryNameExists, ErrArticleCategoryNameTooLong, ErrArticleCategoryNameEmpty:
 			app.WriteHttpError(w, http.StatusBadRequest, err)
 		default:
-			app.WriteHttpError(w, http.StatusInternalServerError, err)
+			app.WriteHttpInternalServerError(w)
 		}
 
 		return
@@ -88,7 +88,7 @@ func deleteArticleCategoryHandler(w http.ResponseWriter, r *http.Request) {
 		case ErrInvalidArticleCategoryId:
 			app.WriteHttpError(w, http.StatusBadRequest, err)
 		default:
-			app.WriteHttpError(w, http.StatusInternalServerError, err)
+			app.WriteHttpInternalServerError(w)
 		}
 
 		return
@@ -117,7 +117,7 @@ func updateArticleCategoryHandler(w http.ResponseWriter, r *http.Request) {
 		case ErrArticleCategoryDoesNotExist:
 			app.WriteHttpError(w, http.StatusNotFound, err)
 		default:
-			app.WriteHttpError(w, http.StatusInternalServerError, err)
+			app.WriteHttpInternalServerError(w)
 		}
 
 		return
@@ -145,7 +145,7 @@ func createArticleHandler(w http.ResponseWriter, r *http.Request) {
 		case ErrArticleCategoryDoesNotExist:
 			app.WriteHttpError(w, http.StatusNotFound, err)
 		default:
-			app.WriteHttpError(w, http.StatusInternalServerError, err)
+			app.WriteHttpInternalServerError(w)
 		}
 
 		return

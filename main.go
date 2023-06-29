@@ -24,9 +24,6 @@ func main() {
 	pool := db.CreateConnPool(config.DbDsn)
 	article.SetPool(pool)
 
-	// Adapter/client injection
-	article.ConfigureMediastackAdapter(config.MediastackUrl, config.MediastackApiKey)
-
 	// Router mounts
 	r := chi.NewRouter()
 	r.Use(app.ReqLoggerMiddleware)

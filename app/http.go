@@ -7,9 +7,14 @@ import (
 )
 
 var (
-	ErrNotFound         = errors.New("Page not found")
-	ErrMethodNotAllowed = errors.New("Method not allowed")
+	ErrNotFound            = errors.New("Page not found")
+	ErrMethodNotAllowed    = errors.New("Method not allowed")
+	ErrInternalServerError = errors.New("Something went wrong on our side")
 )
+
+type httpError[MsgType string | map[string]string] struct {
+	Message MsgType `json:"message"`
+}
 
 func WriteHttpBodyJson(w http.ResponseWriter, status int, body any) {
 	w.Header().Add("Content-Type", "application/json")
@@ -17,7 +22,7 @@ func WriteHttpBodyJson(w http.ResponseWriter, status int, body any) {
 
 	err := json.NewEncoder(w).Encode(body)
 	if err != nil {
-		WriteHttpError(w, http.StatusInternalServerError, err)
+		WriteHttpError(w, http.StatusInternalServerError, ErrInternalServerError)
 	}
 }
 
@@ -25,7 +30,7 @@ func WriteHttpError(w http.ResponseWriter, status int, err error) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	json.NewEncoder(w).Encode(map[string]string{"message": err.Error()})
+	json.NewEncoder(w).Encode(httpError[string]{Message: err.Error()})
 }
 
 func WriteHttpErrors(w http.ResponseWriter, status int, errs map[string]error) {
@@ -33,7 +38,11 @@ func WriteHttpErrors(w http.ResponseWriter, status int, errs map[string]error) {
 	for field, err := range errs {
 		res[field] = err.Error()
 	}
-	WriteHttpBodyJson(w, status, res)
+	WriteHttpBodyJson(w, status, httpError[map[string]string]{Message: res})
+}
+
+func WriteHttpInternalServerError(w http.ResponseWriter) {
+	WriteHttpError(w, http.StatusInternalServerError, ErrInternalServerError)
 }
 
 func Heartbeat(w http.ResponseWriter, r *http.Request) {

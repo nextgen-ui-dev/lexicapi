@@ -10,9 +10,6 @@ type Config struct {
 	Env  string `mapstructure:"ENV"`
 	Port string `mapstructure:"PORT"`
 
-	MediastackUrl    string `mapstructure:"MEDIASTACK_URL"`
-	MediastackApiKey string `mapstructure:"MEDIASTACK_API_KEY"`
-
 	DbUrl  string `mapstructure:"DB_URL"`
 	DbHost string `mapstructure:"DB_HOST"`
 	DbPort string `mapstructure:"DB_PORT"`
