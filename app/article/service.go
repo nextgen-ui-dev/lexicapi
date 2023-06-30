@@ -264,3 +264,38 @@ func updateArticle(ctx context.Context, idStr string, body updateArticleReq) (ar
 
 	return article, nil, nil
 }
+
+func removeArticle(ctx context.Context, idStr string) (err error) {
+	id, err := validateArticleId(idStr)
+	if err != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to remove article")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	article, err := findArticleById(ctx, tx, id)
+	if err != nil {
+		return
+	}
+
+	article.Delete()
+	if err = deleteArticle(ctx, tx, article); err != nil {
+		return
+	}
+	if err = deleteArticleTextsByArticle(ctx, tx, article); err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to remove article")
+		return
+	}
+
+	return nil
+}

@@ -206,3 +206,23 @@ func updateArticleHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.WriteHttpBodyJson(w, http.StatusOK, article)
 }
+
+func removeArticleHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id := chi.URLParam(r, "id")
+	if err := removeArticle(ctx, id); err != nil {
+		switch {
+		case errors.As(err, &ErrInvalidArticleId):
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case errors.Is(err, ErrArticleDoesNotExist):
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

@@ -232,3 +232,27 @@ func updateArticleById(ctx context.Context, tx pgx.Tx, article Article) (updated
 
 	return updatedArticle, nil
 }
+
+func deleteArticle(ctx context.Context, tx pgx.Tx, article Article) (err error) {
+	q := "UPDATE articles SET deleted_at = $1 WHERE id = $2 AND deleted_at IS NULL"
+
+	_, err = tx.Exec(ctx, q, article.DeletedAt, article.Id)
+	if err != nil {
+		log.Err(err).Msg("Failed to delete article")
+		return err
+	}
+
+	return nil
+}
+
+func deleteArticleTextsByArticle(ctx context.Context, tx pgx.Tx, article Article) (err error) {
+	q := "UPDATE article_texts SET deleted_at = $1 WHERE article_id = $2 AND deleted_at IS NULL"
+
+	_, err = tx.Exec(ctx, q, article.DeletedAt, article.Id)
+	if err != nil {
+		log.Err(err).Msg("Failed to delete article texts")
+		return err
+	}
+
+	return nil
+}

@@ -116,3 +116,9 @@ func (a *Article) Update(
 
 	return nil
 }
+
+func (a *Article) Delete() {
+	if !a.DeletedAt.Valid {
+		a.DeletedAt = null.NewTime(time.Now(), true)
+	}
+}
