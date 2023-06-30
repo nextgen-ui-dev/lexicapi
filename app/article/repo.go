@@ -193,3 +193,42 @@ func findArticleTextsByArticleId(ctx context.Context, tx pgx.Tx, articleId ulid.
 
 	return texts, nil
 }
+
+func updateArticleById(ctx context.Context, tx pgx.Tx, article Article) (updatedArticle Article, err error) {
+	if _, err := findArticleCategoryById(ctx, tx, article.CategoryId); err != nil {
+		return article, err
+	}
+
+	q := `UPDATE articles
+  SET category_id = $1, title = $2, thumbnail_url = $3, original_url = $4, 
+  source = $5, author = $6, is_published = $7, updated_at = $8
+  WHERE id = $9 AND deleted_at IS NULL
+  RETURNING *
+  `
+
+	err = pgxscan.Get(
+		ctx,
+		tx,
+		&updatedArticle,
+		q,
+		article.CategoryId,
+		article.Title,
+		article.ThumbnailUrl,
+		article.OriginalUrl,
+		article.Source,
+		article.Author,
+		article.IsPublished,
+		article.UpdatedAt,
+		article.Id,
+	)
+	if err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return updatedArticle, ErrArticleDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to update article category")
+		return updatedArticle, err
+	}
+
+	return updatedArticle, nil
+}

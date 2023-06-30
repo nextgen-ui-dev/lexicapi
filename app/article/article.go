@@ -70,3 +70,49 @@ func NewArticle(
 		CreatedAt:    time.Now(),
 	}, nil
 }
+
+func (a *Article) Update(
+	categoryIdStr string,
+	title string,
+	thumbnailUrl null.String,
+	originalUrl string,
+	source string,
+	author null.String,
+	isPublished bool,
+) map[string]error {
+	errs := make(map[string]error)
+
+	categoryId, err := validateArticleCategoryId(categoryIdStr)
+	if err != nil {
+		errs["category_id"] = err
+	}
+	if err = validateArticleTitle(title); err != nil {
+		errs["title"] = err
+	}
+	if err = validateArticleThumbnailUrl(thumbnailUrl.String); err != nil {
+		errs["thumbnail_url"] = err
+	}
+	if err = validateArticleOriginalUrl(originalUrl); err != nil {
+		errs["original_url"] = err
+	}
+	if err = validateArticleSource(source); err != nil {
+		errs["source"] = err
+	}
+	if err = validateArticleAuthor(author.String); err != nil {
+		errs["author"] = err
+	}
+
+	if len(errs) != 0 {
+		return errs
+	}
+
+	a.CategoryId = categoryId
+	a.Title = title
+	a.ThumbnailUrl = thumbnailUrl
+	a.OriginalUrl = originalUrl
+	a.Source = source
+	a.Author = author
+	a.UpdatedAt = null.NewTime(time.Now(), true)
+
+	return nil
+}

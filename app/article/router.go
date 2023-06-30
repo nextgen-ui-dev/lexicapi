@@ -13,6 +13,7 @@ func AdminRouter() *chi.Mux {
 
 	r.Post("/", createArticleHandler)
 	r.Get("/{id}", getArticleByIdHandler)
+	r.Put("/{id}", updateArticleHandler)
 
 	return r
 }

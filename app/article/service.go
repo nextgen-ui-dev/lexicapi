@@ -220,3 +220,47 @@ func getArticleById(ctx context.Context, idStr string) (articleDetail ArticleDet
 
 	return ArticleDetail{Article: article, Texts: textMap}, nil
 }
+
+func updateArticle(ctx context.Context, idStr string, body updateArticleReq) (article Article, errs map[string]error, err error) {
+	id, err := validateArticleId(idStr)
+	if err != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to update article")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	article, err = findArticleById(ctx, tx, id)
+	if err != nil {
+		return
+	}
+
+	if errs = article.Update(
+		body.CategoryId,
+		body.Title,
+		body.ThumbnailUrl,
+		body.OriginalUrl,
+		body.Source,
+		body.Author,
+		body.IsPublished,
+	); errs != nil {
+		return
+	}
+
+	article, err = updateArticleById(ctx, tx, article)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to update article")
+		return
+	}
+
+	return article, nil, nil
+}

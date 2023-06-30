@@ -175,3 +175,34 @@ func getArticleByIdHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.WriteHttpBodyJson(w, http.StatusOK, article)
 }
+
+func updateArticleHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id := chi.URLParam(r, "id")
+	var body updateArticleReq
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.WriteHttpError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	article, errs, err := updateArticle(ctx, id, body)
+	if errs != nil {
+		app.WriteHttpErrors(w, http.StatusBadRequest, errs)
+		return
+	}
+	if err != nil {
+		switch {
+		case errors.As(err, &ErrInvalidArticleId):
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case errors.Is(err, ErrArticleCategoryDoesNotExist), errors.Is(err, ErrArticleDoesNotExist):
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, article)
+}
