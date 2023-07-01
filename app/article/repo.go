@@ -3,12 +3,16 @@ package article
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
+	"gopkg.in/guregu/null.v4"
 )
 
 var (
@@ -96,6 +100,131 @@ func updateArticleCategoryById(ctx context.Context, tx pgx.Tx, id ulid.ULID, nam
 	}
 
 	return category, nil
+}
+
+func findArticles(
+	ctx context.Context, tx pgx.Tx,
+	query string, categoryId ulid.ULID, pageSize uint, direction ArticlePaginationDirection,
+	cursor ulid.ULID,
+) (articles Articles, err error) {
+	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+	var categoryFilter string
+	if categoryId != (ulid.ULID{}) {
+		categoryFilter = "category_id = $2"
+	} else {
+		categoryFilter = "category_id != $2"
+	}
+	rowNumber := `WITH rows AS (
+    SELECT ROW_NUMBER() OVER (ORDER BY id DESC) row, id 
+    FROM articles 
+    WHERE deleted_at IS NULL AND title ILIKE '%' || $1 || '%' AND ` + categoryFilter + `
+    ORDER BY id DESC
+    )`
+	sBuilder := psql.Select("rows.row", "a.*").From("articles a").InnerJoin("rows ON rows.id = a.id")
+	sBuilder = sBuilder.Where("title ILIKE '%' || ? || '%'").Where("deleted_at IS NULL")
+
+	if categoryId != (ulid.ULID{}) {
+		sBuilder = sBuilder.Where(sq.Eq{"category_id": categoryId})
+	} else {
+		sBuilder = sBuilder.Where(sq.NotEq{"category_id": categoryId})
+	}
+
+	switch direction {
+	case NEXT:
+		if cursor != (ulid.ULID{}) {
+			sBuilder = sBuilder.Where(sq.LtOrEq{"a.id": cursor})
+		} else {
+			sBuilder = sBuilder.Where(sq.NotEq{"a.id": cursor})
+		}
+		sBuilder = sBuilder.OrderBy("a.id DESC").Limit(uint64(pageSize) + 1)
+	case PREVIOUS:
+		if cursor != (ulid.ULID{}) {
+			sBuilder = sBuilder.Where(sq.GtOrEq{"a.id": cursor})
+		} else {
+			sBuilder = sBuilder.Where(sq.NotEq{"a.id": cursor})
+		}
+		sBuilder = sBuilder.OrderBy("a.id ASC").Limit(uint64(pageSize) + 1)
+	}
+
+	q, _, err := sBuilder.ToSql()
+	if err != nil {
+		log.Err(err).Msg("Failed to find articles")
+		return
+	}
+
+	articleQuery := rowNumber + " " + q
+	log.Info().Msg(articleQuery)
+
+	var listOfArticles []*ArticleWithRowNumber
+	if err = pgxscan.Select(ctx, tx, &listOfArticles, articleQuery, query, categoryId, cursor); err != nil {
+		log.Err(err).Msg("Failed to get articles")
+		return articles, err
+	}
+
+	totalQuery := strings.ReplaceAll(q, "rows.row, a.*", "COUNT(*) total")
+	totalQuery = strings.ReplaceAll(totalQuery, "INNER JOIN rows ON rows.id = a.id", "")
+	totalQuery = strings.ReplaceAll(totalQuery, fmt.Sprintf("AND a.id >= $3 ORDER BY a.id ASC LIMIT %d", pageSize+1), "")
+	totalQuery = strings.ReplaceAll(totalQuery, fmt.Sprintf("AND a.id <= $3 ORDER BY a.id DESC LIMIT %d", pageSize+1), "")
+	totalQuery = strings.ReplaceAll(totalQuery, fmt.Sprintf("AND a.id <> $3 ORDER BY a.id ASC LIMIT %d", pageSize+1), "")
+	totalQuery = strings.ReplaceAll(totalQuery, fmt.Sprintf("AND a.id <> $3 ORDER BY a.id DESC LIMIT %d", pageSize+1), "")
+	log.Info().Msg(totalQuery)
+	var totalResult struct {
+		Total uint
+	}
+	if err = pgxscan.Get(ctx, tx, &totalResult, totalQuery, query, categoryId); err != nil {
+		log.Err(err).Msg("Failed to get articles")
+		return articles, err
+	}
+
+	if direction == PREVIOUS {
+		for i := 0; i < len(listOfArticles)/2; i++ {
+			j := len(listOfArticles) - i - 1
+			listOfArticles[i], listOfArticles[j] = listOfArticles[j], listOfArticles[i]
+		}
+	}
+
+	var newCursor null.String
+	firstRow := uint(0)
+	lastRow := uint(0)
+	if len(listOfArticles) > int(pageSize) {
+		if direction == PREVIOUS {
+			newCursor = null.StringFrom(listOfArticles[0].Id.String())
+		} else {
+
+			newCursor = null.StringFrom(listOfArticles[len(listOfArticles)-1].Id.String())
+		}
+		firstRow = listOfArticles[0].Row
+		lastRow = listOfArticles[len(listOfArticles)-2].Row
+		listOfArticles = listOfArticles[:len(listOfArticles)-1]
+	} else if len(listOfArticles) > 0 {
+		if direction == PREVIOUS {
+			newCursor = null.StringFrom(listOfArticles[0].Id.String())
+		} else {
+
+			newCursor = null.StringFrom(listOfArticles[len(listOfArticles)-1].Id.String())
+		}
+		firstRow = listOfArticles[0].Row
+		lastRow = listOfArticles[len(listOfArticles)-1].Row
+	}
+
+	if newCursor.String == cursor.String() {
+		firstRow, lastRow = 0, 0
+		newCursor = null.NewString("", false)
+		listOfArticles = make([]*ArticleWithRowNumber, 0)
+	}
+
+	articles = Articles{
+		ArticlesMetadata: ArticlesMetadata{
+			Cursor:   newCursor,
+			Total:    totalResult.Total,
+			FirstRow: firstRow,
+			LastRow:  lastRow,
+		},
+		Articles: listOfArticles,
+	}
+
+	return articles, nil
 }
 
 func saveArticle(ctx context.Context, tx pgx.Tx, article Article) (Article, error) {

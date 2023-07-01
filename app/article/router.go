@@ -11,6 +11,7 @@ func AdminRouter() *chi.Mux {
 	r.Delete("/category/{id}", deleteArticleCategoryHandler)
 	r.Patch("/category/{id}", updateArticleCategoryHandler)
 
+	r.Get("/", getArticlesHandler)
 	r.Post("/", createArticleHandler)
 	r.Get("/{id}", getArticleByIdHandler)
 	r.Put("/{id}", updateArticleHandler)

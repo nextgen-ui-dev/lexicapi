@@ -127,6 +127,31 @@ func updateArticleCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	app.WriteHttpBodyJson(w, http.StatusOK, category)
 }
 
+func getArticlesHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	q := r.URL.Query().Get("q")
+	categoryId := r.URL.Query().Get("category_id")
+	pageSizeStr := r.URL.Query().Get("page_size")
+	direction := r.URL.Query().Get("direction")
+	cursor := r.URL.Query().Get("cursor")
+
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil || pageSize <= 0 {
+		pageSize = 100
+	}
+
+	articles, err := getArticles(ctx, q, categoryId, uint(pageSize), direction, cursor)
+	if err != nil {
+		switch {
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, articles)
+}
+
 func createArticleHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

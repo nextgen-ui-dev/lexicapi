@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 )
 
@@ -141,6 +142,47 @@ func updateArticleCategory(ctx context.Context, idStr, name string) (category Ar
 	}
 
 	return category, nil
+}
+
+func getArticles(ctx context.Context, query string, categoryIdStr string, pageSize uint, directionStr string, cursorStr string) (articles Articles, err error) {
+	query = strings.TrimSpace(query)
+	categoryId, err := validateArticleCategoryId(categoryIdStr)
+	if err != nil {
+		categoryId = ulid.ULID{}
+	}
+
+	var direction ArticlePaginationDirection
+	switch directionStr {
+	case string(PREVIOUS):
+		direction = PREVIOUS
+	default:
+		direction = NEXT
+	}
+
+	cursor, err := validateArticleId(cursorStr)
+	if err != nil {
+		cursor = ulid.ULID{}
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to get articles")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	articles, err = findArticles(ctx, tx, query, categoryId, pageSize, direction, cursor)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to get articles")
+		return
+	}
+
+	return articles, nil
 }
 
 func createArticle(ctx context.Context, body createArticleReq) (articleDetail ArticleDetail, errs map[string]error, err error) {

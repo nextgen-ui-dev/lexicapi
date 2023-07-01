@@ -30,3 +30,10 @@ type updateArticleReq struct {
 	Author       null.String `json:"author"`
 	IsPublished  bool        `json:"is_published"`
 }
+
+type ArticlePaginationDirection string
+
+const (
+	NEXT     ArticlePaginationDirection = "next"
+	PREVIOUS                            = "previous"
+)
