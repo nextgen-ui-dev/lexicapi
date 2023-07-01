@@ -19,6 +19,7 @@ var (
 	ErrArticleCategoryNameExists   = errors.New("Article category with that name exists")
 	ErrArticleCategoryDoesNotExist = errors.New("Article category does not exist")
 	ErrArticleDoesNotExist         = errors.New("Article does not exist")
+	ErrArticleTextDoesNotExist     = errors.New("Article text does not exist")
 	ErrArticleTextDifficultyExist  = errors.New("Article text with that difficulty exists")
 )
 
@@ -389,4 +390,60 @@ func deleteArticleTextsByArticle(ctx context.Context, tx pgx.Tx, article Article
 	}
 
 	return nil
+}
+
+func findArticleTextByIdAndArticleId(ctx context.Context, tx pgx.Tx, id ulid.ULID, articleId ulid.ULID) (text ArticleText, err error) {
+	if _, err := findArticleById(ctx, tx, articleId); err != nil {
+		return text, err
+	}
+
+	q := "SELECT * FROM article_texts WHERE id = $1 AND article_id = $2 AND deleted_at IS NULL"
+
+	if err = pgxscan.Get(ctx, tx, &text, q, id, articleId); err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return text, ErrArticleTextDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to find article text")
+		return
+	}
+
+	return text, nil
+}
+
+func updateArticleTextById(ctx context.Context, tx pgx.Tx, text ArticleText) (updatedText ArticleText, err error) {
+	if _, err = findArticleById(ctx, tx, text.ArticleId); err != nil {
+		return text, err
+	}
+
+	q := `
+  UPDATE article_texts
+  SET content = $1, difficulty = $2, is_adapted = $3, updated_at = $4
+  WHERE id = $5 AND deleted_at IS NULL
+  RETURNING *
+  `
+
+	if err = pgxscan.Get(
+		ctx,
+		tx,
+		&updatedText,
+		q,
+		text.Content,
+		text.Difficulty,
+		text.IsAdapted,
+		text.UpdatedAt,
+		text.Id,
+	); err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return text, ErrArticleTextDifficultyExist
+			}
+		}
+
+		log.Err(err).Msg("Failed to update article text")
+		return text, err
+	}
+
+	return updatedText, nil
 }

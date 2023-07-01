@@ -59,3 +59,24 @@ func NewArticleText(
 		CreatedAt:  time.Now(),
 	}, nil
 }
+
+func (at *ArticleText) Update(content, difficulty string, isAdapted bool) map[string]error {
+	errs := make(map[string]error)
+
+	if err := validateArticleTextContent(content); err != nil {
+		errs["content"] = err
+	}
+	if err := validateArticleTextDifficulty(difficulty); err != nil {
+		errs["difficulty"] = err
+	}
+	if len(errs) != 0 {
+		return errs
+	}
+
+	at.Content = content
+	at.Difficulty = difficulty
+	at.IsAdapted = isAdapted
+	at.UpdatedAt = null.TimeFrom(time.Now())
+
+	return nil
+}

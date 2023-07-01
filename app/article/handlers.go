@@ -282,3 +282,36 @@ func createArticleTextHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.WriteHttpBodyJson(w, http.StatusCreated, text)
 }
+
+func updateArticleTextHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	id := chi.URLParam(r, "id")
+	articleId := chi.URLParam(r, "articleId")
+
+	var body updateArticleTextReq
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.WriteHttpError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	text, errs, err := updateArticleText(ctx, id, articleId, body)
+	if errs != nil {
+		app.WriteHttpErrors(w, http.StatusBadRequest, errs)
+		return
+	}
+	if err != nil {
+		switch {
+		case errors.As(err, &ErrInvalidArticleTextId), errors.As(err, &ErrInvalidArticleId), errors.Is(err, ErrArticleTextDifficultyExist):
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case errors.Is(err, ErrArticleTextDoesNotExist), errors.Is(err, ErrArticleDoesNotExist):
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, text)
+}

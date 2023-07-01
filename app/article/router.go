@@ -18,6 +18,7 @@ func AdminRouter() *chi.Mux {
 	r.Delete("/{id}", removeArticleHandler)
 
 	r.Post("/{articleId}/text", createArticleTextHandler)
+	r.Patch("/{articleId}/text/{id}", updateArticleTextHandler)
 
 	return r
 }

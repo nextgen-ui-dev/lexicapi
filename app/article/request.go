@@ -43,3 +43,9 @@ type createArticleTextReq struct {
 	Difficulty string `json:"difficulty"`
 	IsAdapted  bool   `json:"is_adapted"`
 }
+
+type updateArticleTextReq struct {
+	Content    string `json:"content"`
+	Difficulty string `json:"difficulty"`
+	IsAdapted  bool   `json:"is_adapted"`
+}

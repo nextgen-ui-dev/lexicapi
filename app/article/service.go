@@ -368,3 +368,44 @@ func createArticleText(ctx context.Context, articleId string, body createArticle
 
 	return text, nil, nil
 }
+
+func updateArticleText(ctx context.Context, idStr, articleIdStr string, body updateArticleTextReq) (text ArticleText, errs map[string]error, err error) {
+	id, err := validateArticleTextId(idStr)
+	if err != nil {
+		return
+	}
+
+	articleId, err := validateArticleId(articleIdStr)
+	if err != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to update article text")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	text, err = findArticleTextByIdAndArticleId(ctx, tx, id, articleId)
+	if err != nil {
+		return
+	}
+
+	if errs = text.Update(body.Content, body.Difficulty, body.IsAdapted); errs != nil {
+		return
+	}
+
+	text, err = updateArticleTextById(ctx, tx, text)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to update article text")
+		return
+	}
+
+	return text, nil, nil
+}
