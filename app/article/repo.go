@@ -19,6 +19,7 @@ var (
 	ErrArticleCategoryNameExists   = errors.New("Article category with that name exists")
 	ErrArticleCategoryDoesNotExist = errors.New("Article category does not exist")
 	ErrArticleDoesNotExist         = errors.New("Article does not exist")
+	ErrArticleTextDifficultyExist  = errors.New("Article text with that difficulty exists")
 )
 
 func findArticleCategories(ctx context.Context, tx pgx.Tx, search string, limit uint) (categories []*ArticleCategory, err error) {
@@ -266,7 +267,7 @@ func saveArticleText(ctx context.Context, tx pgx.Tx, text ArticleText) (ArticleT
 	q := `INSERT INTO article_texts(id, article_id, content, difficulty, is_adapted, created_at) VALUES
   ($1, $2, $3, $4, $5, $6)
   ON CONFLICT(id)
-  DO UPDATE SET article_id = $2, content = $3, difficulty = $4, is_adapted = $5, updated_at = $6
+  DO UPDATE SET content = $3, difficulty = $4, is_adapted = $5, updated_at = $6
   RETURNING *
   `
 
@@ -283,6 +284,13 @@ func saveArticleText(ctx context.Context, tx pgx.Tx, text ArticleText) (ArticleT
 		text.IsAdapted,
 		text.CreatedAt,
 	); err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return text, ErrArticleTextDifficultyExist
+			}
+		}
+
 		log.Err(err).Msg("Failed to save article text")
 		return text, err
 	}

@@ -37,3 +37,9 @@ const (
 	NEXT     ArticlePaginationDirection = "next"
 	PREVIOUS                            = "previous"
 )
+
+type createArticleTextReq struct {
+	Content    string `json:"content"`
+	Difficulty string `json:"difficulty"`
+	IsAdapted  bool   `json:"is_adapted"`
+}

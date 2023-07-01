@@ -341,3 +341,30 @@ func removeArticle(ctx context.Context, idStr string) (err error) {
 
 	return nil
 }
+
+func createArticleText(ctx context.Context, articleId string, body createArticleTextReq) (text ArticleText, errs map[string]error, err error) {
+	text, errs = NewArticleText(articleId, body.Content, body.Difficulty, body.IsAdapted)
+	if errs != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to create article text")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	text, err = saveArticleText(ctx, tx, text)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to create article text")
+		return
+	}
+
+	return text, nil, nil
+}

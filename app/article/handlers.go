@@ -251,3 +251,34 @@ func removeArticleHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func createArticleTextHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	articleId := chi.URLParam(r, "articleId")
+	var body createArticleTextReq
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.WriteHttpError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	text, errs, err := createArticleText(ctx, articleId, body)
+	if errs != nil {
+		app.WriteHttpErrors(w, http.StatusBadRequest, errs)
+		return
+	}
+	if err != nil {
+		switch err {
+		case ErrArticleTextDifficultyExist:
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case ErrArticleDoesNotExist:
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusCreated, text)
+}
