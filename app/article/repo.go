@@ -154,8 +154,6 @@ func findArticles(
 	}
 
 	articleQuery := rowNumber + " " + q
-	log.Info().Msg(articleQuery)
-
 	var listOfArticles []*ArticleWithRowNumber
 	if err = pgxscan.Select(ctx, tx, &listOfArticles, articleQuery, query, categoryId, cursor); err != nil {
 		log.Err(err).Msg("Failed to get articles")
@@ -168,7 +166,6 @@ func findArticles(
 	totalQuery = strings.ReplaceAll(totalQuery, fmt.Sprintf("AND a.id <= $3 ORDER BY a.id DESC LIMIT %d", pageSize+1), "")
 	totalQuery = strings.ReplaceAll(totalQuery, fmt.Sprintf("AND a.id <> $3 ORDER BY a.id ASC LIMIT %d", pageSize+1), "")
 	totalQuery = strings.ReplaceAll(totalQuery, fmt.Sprintf("AND a.id <> $3 ORDER BY a.id DESC LIMIT %d", pageSize+1), "")
-	log.Info().Msg(totalQuery)
 	var totalResult struct {
 		Total uint
 	}
