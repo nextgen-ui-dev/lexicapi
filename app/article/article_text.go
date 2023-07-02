@@ -80,3 +80,9 @@ func (at *ArticleText) Update(content, difficulty string, isAdapted bool) map[st
 
 	return nil
 }
+
+func (at *ArticleText) Delete() {
+  if !at.DeletedAt.Valid {
+		at.DeletedAt = null.TimeFrom(time.Now())
+	}
+}

@@ -447,3 +447,15 @@ func updateArticleTextById(ctx context.Context, tx pgx.Tx, text ArticleText) (up
 
 	return updatedText, nil
 }
+
+func deleteArticleText(ctx context.Context, tx pgx.Tx, text ArticleText) (err error) {
+	q := "UPDATE article_texts SET deleted_at = $1 WHERE id = $2 AND deleted_at IS NULL"
+
+	_, err = tx.Exec(ctx, q, text.DeletedAt, text.Id)
+	if err != nil {
+		log.Err(err).Msg("Failed to delete article text")
+		return err
+	}
+
+	return nil
+}

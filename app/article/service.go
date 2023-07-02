@@ -409,3 +409,40 @@ func updateArticleText(ctx context.Context, idStr, articleIdStr string, body upd
 
 	return text, nil, nil
 }
+
+func removeArticleText(ctx context.Context, idStr, articleIdStr string) (err error) {
+	id, err := validateArticleTextId(idStr)
+	if err != nil {
+		return
+	}
+
+	articleId, err := validateArticleId(articleIdStr)
+	if err != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to remove article text")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	text, err := findArticleTextByIdAndArticleId(ctx, tx, id, articleId)
+	if err != nil {
+		return
+	}
+
+	text.Delete()
+	if err = deleteArticleText(ctx, tx, text); err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to remove article text")
+		return
+	}
+
+	return nil
+}
