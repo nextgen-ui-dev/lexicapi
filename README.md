@@ -26,6 +26,12 @@ go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@lat
 go install github.com/momaek/formattag@latest
 ```
 
+4. Swag to generate and configure documentation based on the OpenAPI spec
+
+```bash
+go install github.com/swaggo/swag/cmd/swag@latest
+```
+
 Alternatively, you can run the `tools/install.sh` script to do this for you.
 
 ```bash
@@ -41,6 +47,7 @@ To sum it up:
 - Go >= 1.20
 - PostgreSQL >= 15.0
 - Migrate CLI
+- Swag CLI
 - Docker (highly recommended)
 - Air (optional, but recommended)
 - Formattag (optional, but recommended)
