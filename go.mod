@@ -11,6 +11,7 @@ require (
 	github.com/jellydator/validation v1.1.0
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/rs/zerolog v1.29.1
+	github.com/sashabaranov/go-openai v1.12.0
 	github.com/spf13/viper v1.16.0
 	gopkg.in/guregu/null.v4 v4.0.0
 )

@@ -10,6 +10,9 @@ type Config struct {
 	Env  string `mapstructure:"ENV"`
 	Port string `mapstructure:"PORT"`
 
+	OpenAIOrganizationId string `mapstructure:"OPENAI_ORGANIZATION_ID"`
+	OpenAIAPIKey         string `mapstructure:"OPENAI_API_KEY"`
+
 	DbUrl  string `mapstructure:"DB_URL"`
 	DbHost string `mapstructure:"DB_HOST"`
 	DbPort string `mapstructure:"DB_PORT"`

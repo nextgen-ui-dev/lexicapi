@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/lexica-app/lexicapi/adapters"
 	"github.com/lexica-app/lexicapi/app"
 	"github.com/lexica-app/lexicapi/app/article"
 	"github.com/lexica-app/lexicapi/db"
@@ -23,6 +24,9 @@ func main() {
 	// Database connection injection
 	pool := db.CreateConnPool(config.DbDsn)
 	article.SetPool(pool)
+
+	// Configure Adapters
+	adapters.ConfigureOpenAIAdapter(config.OpenAIOrganizationId, config.OpenAIOrganizationId)
 
 	// Router mounts
 	r := chi.NewRouter()
