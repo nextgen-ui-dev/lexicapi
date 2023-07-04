@@ -24,3 +24,15 @@ func AdminRouter() *chi.Mux {
 
 	return r
 }
+
+func Router() *chi.Mux {
+	r := chi.NewRouter()
+
+	r.Get("/category", getArticleCategoriesHandler)
+	r.Get("/category/{id}", getArticleCategoryByIdHandler)
+
+	r.Get("/", getArticlesHandler)
+	r.Get("/{id}", getArticleByIdHandler)
+
+	return r
+}

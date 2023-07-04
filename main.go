@@ -44,6 +44,11 @@ func main() {
 		r.Mount("/admin/article", article.AdminRouter())
 	})
 
+	// Normal Routes
+	r.Group(func(r chi.Router) {
+		r.Mount("/article", article.Router())
+	})
+
 	log.Info().Msgf("Running server on port %s in %s mode...", config.Port, config.Env)
 	http.ListenAndServe(":"+config.Port, r)
 }
