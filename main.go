@@ -25,8 +25,9 @@ func main() {
 	pool := db.CreateConnPool(config.DbDsn)
 	article.SetPool(pool)
 
-	// Configure Adapters
-	adapters.ConfigureOpenAIAdapter(config.OpenAIOrganizationId, config.OpenAIOrganizationId)
+	// Configure Adapters and Injection
+	openaiAdapter := adapters.ConfigureOpenAIAdapter(config.OpenAIOrganizationId, config.OpenAIOrganizationId)
+	article.SetOpenAIAdapter(openaiAdapter)
 
 	// Router mounts
 	r := chi.NewRouter()

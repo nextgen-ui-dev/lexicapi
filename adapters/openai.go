@@ -7,15 +7,12 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 )
 
-var openAIAdapter *openai.Client
-
 var (
-	ErrOpenAIOrganizationIdEmpty  = errors.New("OpenAI organization id can't be empty")
-	ErrOpenAIAPIKeyEmpty          = errors.New("OpenAI API key can't be empty")
-	ErrOpenAIAdapterNotConfigured = errors.New("OpenAI adapter is not configured yet")
+	ErrOpenAIOrganizationIdEmpty = errors.New("OpenAI organization id can't be empty")
+	ErrOpenAIAPIKeyEmpty         = errors.New("OpenAI API key can't be empty")
 )
 
-func ConfigureOpenAIAdapter(organizationId, apiKey string) {
+func ConfigureOpenAIAdapter(organizationId, apiKey string) *openai.Client {
 	if organizationId == "" {
 		log.Fatal().Err(ErrOpenAIOrganizationIdEmpty).Msg("Failed to configure OpenAI adapter")
 	}
@@ -26,12 +23,5 @@ func ConfigureOpenAIAdapter(organizationId, apiKey string) {
 	config := openai.DefaultConfig(apiKey)
 	config.OrgID = organizationId
 
-	openAIAdapter = openai.NewClientWithConfig(config)
-}
-
-func OpenAIAdapter() *openai.Client {
-	if openAIAdapter == nil {
-		log.Fatal().Err(ErrOpenAIAdapterNotConfigured).Msg("Failed to get OpenAI adapter")
-	}
-	return openAIAdapter
+	return openai.NewClientWithConfig(config)
 }
