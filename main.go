@@ -26,7 +26,7 @@ func main() {
 	article.SetPool(pool)
 
 	// Configure Adapters and Injection
-	openaiAdapter := adapters.ConfigureOpenAIAdapter(config.OpenAIOrganizationId, config.OpenAIOrganizationId)
+	openaiAdapter := adapters.ConfigureOpenAIAdapter(config.OpenAIOrganizationId, config.OpenAIAPIKey)
 	article.SetOpenAIAdapter(openaiAdapter)
 
 	// Router mounts

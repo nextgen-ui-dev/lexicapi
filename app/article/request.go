@@ -49,3 +49,9 @@ type updateArticleTextReq struct {
 	Difficulty string `json:"difficulty"`
 	IsAdapted  bool   `json:"is_adapted"`
 }
+
+type generateOpenAIArticleTextReq struct {
+	Content    string `json:"content"`
+	Difficulty string `json:"difficulty"`
+	IsAdapted  bool   `json:"is_adapted"`
+}

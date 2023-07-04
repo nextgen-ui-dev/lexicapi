@@ -268,7 +268,7 @@ func saveArticleText(ctx context.Context, tx pgx.Tx, text ArticleText) (ArticleT
 	q := `INSERT INTO article_texts(id, article_id, content, difficulty, is_adapted, created_at) VALUES
   ($1, $2, $3, $4, $5, $6)
   ON CONFLICT(id)
-  DO UPDATE SET content = $3, difficulty = $4, is_adapted = $5, updated_at = $6
+  DO UPDATE SET content = $3, difficulty = $4, is_adapted = $5, updated_at = NOW()
   RETURNING *
   `
 
@@ -390,6 +390,25 @@ func deleteArticleTextsByArticle(ctx context.Context, tx pgx.Tx, article Article
 	}
 
 	return nil
+}
+
+func findArticleTextByArticleIdAndDifficulty(ctx context.Context, tx pgx.Tx, articleId ulid.ULID, difficulty string) (text ArticleText, err error) {
+	if _, err := findArticleById(ctx, tx, articleId); err != nil {
+		return text, err
+	}
+
+	q := "SELECT * FROM article_texts WHERE article_id = $1 AND difficulty = $2 AND deleted_at IS NULL"
+
+	if err = pgxscan.Get(ctx, tx, &text, q, articleId, difficulty); err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return text, ErrArticleTextDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to find article text")
+		return
+	}
+
+	return text, nil
 }
 
 func findArticleTextByIdAndArticleId(ctx context.Context, tx pgx.Tx, id ulid.ULID, articleId ulid.ULID) (text ArticleText, err error) {

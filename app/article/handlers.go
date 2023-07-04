@@ -10,6 +10,42 @@ import (
 	"github.com/lexica-app/lexicapi/app"
 )
 
+func generateOpenAIArticleTextHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	articleId := chi.URLParam(r, "articleId")
+	var body generateOpenAIArticleTextReq
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.WriteHttpError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	text, errs, err := generateOpenAIArticleText(ctx, articleId, body)
+	if errs != nil {
+		app.WriteHttpErrors(w, http.StatusBadRequest, errs)
+	}
+	if err != nil {
+		switch {
+		case errors.As(err, &ErrInvalidArticleId), errors.As(err, &ErrInvalidArticleTextDifficulty), errors.Is(err, ErrArticleTextDifficultyExist):
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case errors.Is(err, ErrInvalidOpenAIAPIKey):
+			app.WriteHttpError(w, http.StatusUnauthorized, err)
+		case errors.Is(err, ErrArticleDoesNotExist):
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		case errors.Is(err, ErrOpenAIRateLimited):
+			app.WriteHttpError(w, http.StatusTooManyRequests, err)
+		case errors.Is(err, ErrOpenAIServiceError):
+			app.WriteHttpError(w, http.StatusServiceUnavailable, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, text)
+}
+
 func getArticleCategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

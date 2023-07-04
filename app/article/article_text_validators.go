@@ -10,6 +10,7 @@ import (
 var (
 	ErrInvalidArticleTextId         = validation.NewError("article:invalid_article_text_id", "Invalid article text id")
 	ErrArticleTextContentEmpty      = validation.NewError("article:content_empty", "Content can't be empty")
+	ErrInvalidArticleTextDifficulty = validation.NewError("article:invalid_difficulty", "Invalid text difficulty") // Only use for OpenAI integration for now
 	ErrArticleTextDifficultyEmpty   = validation.NewError("article:difficulty_empty", "Difficulty can't be empty")
 	ErrArticleTextDifficultyTooLong = validation.NewError("article:difficulty_too_long", "Difficulty can't be longer than 25 characters")
 )

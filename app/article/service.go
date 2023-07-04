@@ -8,6 +8,62 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func generateOpenAIArticleText(ctx context.Context, articleIdStr string, body generateOpenAIArticleTextReq) (text ArticleText, errs map[string]error, err error) {
+	articleId, err := validateArticleId(articleIdStr)
+	if err != nil {
+		return
+	}
+
+	switch body.Difficulty {
+	case string(ADVANCED), string(INTERMEDIATE), string(BEGINNER):
+	default:
+		return text, nil, ErrInvalidArticleTextDifficulty
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to generate OpenAI article text")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	_, err = findArticleById(ctx, tx, articleId)
+	if err != nil {
+		return
+	}
+
+	if _, err = findArticleTextByArticleIdAndDifficulty(ctx, tx, articleId, body.Difficulty); err != nil {
+		if err == ErrArticleTextDoesNotExist {
+			generatedText, err := generateArticleText(ctx, string(ADVANCED), body.Difficulty, body.Content)
+			if err != nil {
+				return text, nil, err
+			}
+
+			text, errs := NewArticleText(articleIdStr, generatedText, body.Difficulty, body.IsAdapted)
+			if errs != nil {
+				return text, errs, nil
+			}
+
+			text, err = saveArticleText(ctx, tx, text)
+			if err != nil {
+				return text, nil, err
+			}
+
+			if err = tx.Commit(ctx); err != nil {
+				log.Err(err).Msg("Failed to generate OpenAI article text")
+				return text, nil, err
+			}
+
+			return text, nil, nil
+		}
+
+		return
+	}
+
+	return text, nil, ErrArticleTextDifficultyExist
+}
+
 func getArticleCategories(ctx context.Context, query string, limit uint) (categories []*ArticleCategory, err error) {
 	query = strings.TrimSpace(query)
 

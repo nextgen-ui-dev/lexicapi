@@ -12,7 +12,7 @@ type ArticleTextDifficultyPreset string
 const (
 	ADVANCED     ArticleTextDifficultyPreset = "ADVANCED"
 	INTERMEDIATE                             = "INTERMEDIATE"
-	EASY                                     = "EASY"
+	BEGINNER                                 = "BEGINNER"
 )
 
 type ArticleText struct {
@@ -82,7 +82,7 @@ func (at *ArticleText) Update(content, difficulty string, isAdapted bool) map[st
 }
 
 func (at *ArticleText) Delete() {
-  if !at.DeletedAt.Valid {
+	if !at.DeletedAt.Valid {
 		at.DeletedAt = null.TimeFrom(time.Now())
 	}
 }
