@@ -8,6 +8,75 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func regenerateOpenAIArticleText(ctx context.Context, idStr, articleIdStr string, body regenerateOpenAIArticleTextReq) (text ArticleText, errs map[string]error, err error) {
+	articleId, err := validateArticleId(articleIdStr)
+	if err != nil {
+		return
+	}
+
+	id, err := validateArticleTextId(idStr)
+	if err != nil {
+		return
+	}
+
+	switch body.Difficulty {
+	case string(ADVANCED), string(INTERMEDIATE), string(BEGINNER):
+	default:
+		return text, nil, ErrInvalidArticleTextDifficulty
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to regenerate OpenAI article text")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	_, err = findArticleById(ctx, tx, articleId)
+	if err != nil {
+		return
+	}
+
+	text, err = findArticleTextByIdAndArticleId(ctx, tx, id, articleId)
+	if err != nil {
+		return
+	}
+
+	existingText, err := findArticleTextByArticleIdAndDifficulty(ctx, tx, articleId, body.Difficulty)
+	if err != nil || existingText != (ArticleText{}) {
+		if err == ErrArticleTextDoesNotExist || existingText.Id == text.Id {
+			generatedText, err := generateArticleText(ctx, string(ADVANCED), body.Difficulty, body.Content)
+			if err != nil {
+				return text, nil, err
+			}
+
+			if errs = text.Update(generatedText, body.Difficulty, body.IsAdapted); errs != nil {
+				return text, errs, nil
+			}
+
+			text, err = updateArticleTextById(ctx, tx, text)
+			if err != nil {
+				return text, nil, err
+			}
+
+			if err = tx.Commit(ctx); err != nil {
+				log.Err(err).Msg("Failed to regenerate OpenAI article text")
+				return text, nil, err
+			}
+
+			return text, nil, nil
+		} else if existingText != (ArticleText{}) && existingText.Id != text.Id {
+			return text, nil, ErrArticleTextDifficultyExist
+		}
+
+		log.Err(err).Msg("Failed to regenerate OpenAI article text")
+		return text, nil, err
+	}
+
+	return text, nil, ErrArticleTextDifficultyExist
+}
+
 func generateOpenAIArticleText(ctx context.Context, articleIdStr string, body generateOpenAIArticleTextReq) (text ArticleText, errs map[string]error, err error) {
 	articleId, err := validateArticleId(articleIdStr)
 	if err != nil {
