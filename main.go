@@ -19,24 +19,27 @@ func main() {
 		stdlog.Fatal("Failed to load config:", err)
 	}
 
+	// App configurations
 	app.ConfigureLogger(config)
+	app.ConfigureCors(config)
 
-	// Database connection injection
+	// Configure Adapters and Dependency Injection
 	pool := db.CreateConnPool(config.DbDsn)
-	article.SetPool(pool)
-
-	// Configure Adapters and Injection
 	openaiAdapter := adapters.ConfigureOpenAIAdapter(config.OpenAIOrganizationId, config.OpenAIAPIKey)
+
+	article.SetPool(pool)
 	article.SetOpenAIAdapter(openaiAdapter)
 
-	// Router mounts
 	r := chi.NewRouter()
+
+	// Global middlewares
 	r.Use(app.ReqLoggerMiddleware)
 	r.Use(middleware.Recoverer)
+	r.Use(app.CorsMiddleware)
 
+	// Default route handlers
 	r.NotFound(app.NotFound)
 	r.MethodNotAllowed(app.MethodNotAllowed)
-
 	r.Get("/", app.Heartbeat)
 
 	// Admin Routes
