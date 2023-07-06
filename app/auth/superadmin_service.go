@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -43,7 +44,7 @@ func validateSuperadminAccessToken(tokenStr string) (token *jwt.Token, claims *a
 	}
 
 	claims, isValidClaims := token.Claims.(*accessTokenClaims)
-	if !isValidClaims {
+	if !isValidClaims || !strings.Contains(claims.Scopes, "ROLE_SUPERADMIN") {
 		return token, claims, ErrInvalidJWTClaims
 	}
 

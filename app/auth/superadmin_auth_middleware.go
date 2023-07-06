@@ -3,7 +3,6 @@ package auth
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/lexica-app/lexicapi/app"
 	"github.com/rs/zerolog/log"
@@ -45,13 +44,9 @@ func SuperadminAuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		_, claims, err := validateSuperadminAccessToken(tokenStr)
+		_, _, err = validateSuperadminAccessToken(tokenStr)
 		if err != nil {
 			log.Debug().Err(err).Msg("Failed to validate superadmin access token")
-			app.WriteHttpError(w, http.StatusUnauthorized, ErrInvalidAccessToken)
-			return
-		}
-		if !strings.Contains(claims.Scopes, "ROLE_SUPERADMIN") {
 			app.WriteHttpError(w, http.StatusUnauthorized, ErrInvalidAccessToken)
 			return
 		}
