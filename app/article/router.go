@@ -1,9 +1,14 @@
 package article
 
-import "github.com/go-chi/chi/v5"
+import (
+	"github.com/go-chi/chi/v5"
+	"github.com/lexica-app/lexicapi/app/auth"
+)
 
 func AdminRouter() *chi.Mux {
 	r := chi.NewRouter()
+
+	r.Use(auth.SuperadminAuthMiddleware)
 
 	r.Get("/category", getArticleCategoriesHandler)
 	r.Post("/category", createArticleCategoryHandler)
