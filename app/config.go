@@ -10,6 +10,8 @@ type Config struct {
 	Env  string `mapstructure:"ENV"`
 	Port string `mapstructure:"PORT"`
 
+	LexicaSuperadminJwtSecret string `mapstructure:"LEXICA_SUPERADMIN_JWT_SECRET"`
+
 	LexicaApiKey             string `mapstructure:"LEXICA_API_KEY"`
 	LexicaSuperadminEmail    string `mapstructure:"LEXICA_SUPERADMIN_EMAIL"`
 	LexicaSuperadminPassword string `mapstructure:"LEXICA_SUPERADMIN_PASSWORD"`

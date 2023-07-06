@@ -30,7 +30,10 @@ func main() {
 
 	article.SetPool(pool)
 	article.SetOpenAIAdapter(openaiAdapter)
+
 	auth.ConfigureLexicaAPIKey(config.LexicaApiKey)
+	auth.ConfigureSuperadminJWTSecret(config.LexicaSuperadminJwtSecret)
+	auth.ConfigureSuperadmin(config.LexicaSuperadminEmail, config.LexicaSuperadminPassword)
 
 	r := chi.NewRouter()
 
