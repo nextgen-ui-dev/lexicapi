@@ -8,6 +8,7 @@ import (
 
 var allowedOrigins []string
 var allowedMethods []string
+var allowedHeaders []string
 
 func ConfigureCors(c Config) {
 	allowedOrigins = []string{c.ClientApplicationUrl}
@@ -16,12 +17,14 @@ func ConfigureCors(c Config) {
 		allowedOrigins = append(allowedOrigins, "http://localhost:3000")
 		allowedMethods = append(allowedMethods, "HEAD", "TRACE")
 	}
+
+	allowedHeaders = []string{"Accept", "Authorization", "X-Forwarded-Authorization", "Content-Type", "X-Lexica-Api-Key"}
 }
 
 func CorsMiddleware(h http.Handler) http.Handler {
 	return cors.New(cors.Options{
 		AllowedOrigins: allowedOrigins,
 		AllowedMethods: allowedMethods,
-		AllowedHeaders: []string{"Accept", "Authorization", "X-Forwarded-Authorization", "Content-Type"},
+		AllowedHeaders: allowedHeaders,
 	}).Handler(h)
 }

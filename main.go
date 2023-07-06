@@ -9,6 +9,7 @@ import (
 	"github.com/lexica-app/lexicapi/adapters"
 	"github.com/lexica-app/lexicapi/app"
 	"github.com/lexica-app/lexicapi/app/article"
+	"github.com/lexica-app/lexicapi/app/auth"
 	"github.com/lexica-app/lexicapi/db"
 	"github.com/rs/zerolog/log"
 )
@@ -19,7 +20,7 @@ func main() {
 		stdlog.Fatal("Failed to load config:", err)
 	}
 
-	// App configurations
+	// App Configurations
 	app.ConfigureLogger(config)
 	app.ConfigureCors(config)
 
@@ -29,6 +30,7 @@ func main() {
 
 	article.SetPool(pool)
 	article.SetOpenAIAdapter(openaiAdapter)
+	auth.ConfigureLexicaAPIKey(config.LexicaApiKey)
 
 	r := chi.NewRouter()
 
@@ -36,6 +38,7 @@ func main() {
 	r.Use(app.ReqLoggerMiddleware)
 	r.Use(middleware.Recoverer)
 	r.Use(app.CorsMiddleware)
+	r.Use(auth.LexicaAPIKeyMiddleware)
 
 	// Default route handlers
 	r.NotFound(app.NotFound)

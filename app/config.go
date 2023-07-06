@@ -10,7 +10,11 @@ type Config struct {
 	Env  string `mapstructure:"ENV"`
 	Port string `mapstructure:"PORT"`
 
-  ClientApplicationUrl string `mapstructure:"CLIENT_APPLICATION_URL"`
+	LexicaApiKey             string `mapstructure:"LEXICA_API_KEY"`
+	LexicaSuperadminEmail    string `mapstructure:"LEXICA_SUPERADMIN_EMAIL"`
+	LexicaSuperadminPassword string `mapstructure:"LEXICA_SUPERADMIN_PASSWORD"`
+
+	ClientApplicationUrl string `mapstructure:"CLIENT_APPLICATION_URL"`
 
 	OpenAIOrganizationId string `mapstructure:"OPENAI_ORGANIZATION_ID"`
 	OpenAIAPIKey         string `mapstructure:"OPENAI_API_KEY"`
