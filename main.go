@@ -32,7 +32,7 @@ func main() {
 	article.SetOpenAIAdapter(openaiAdapter)
 
 	auth.ConfigureLexicaAPIKey(config.LexicaApiKey)
-	auth.ConfigureSuperadminJWTSecret(config.LexicaSuperadminJwtSecret)
+	auth.ConfigureJWTProperties(config.LexicaJwtIssuer, config.LexicaJwtSecret)
 	auth.ConfigureSuperadmin(config.LexicaSuperadminEmail, config.LexicaSuperadminPassword)
 
 	r := chi.NewRouter()

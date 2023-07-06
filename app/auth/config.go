@@ -8,14 +8,16 @@ import (
 )
 
 var (
-	lexicaApiKey        string
-	superadminJWTSecret []byte
-	superadmin          *Superadmin
+	lexicaApiKey string
+	jwtIssuer    string
+	jwtSecret    []byte
+	superadmin   *Superadmin
 
-	ErrLexicaAPIKeyEmpty        = errors.New("Lexica API Key can't be empty")
-	ErrSuperadminJWTSecretEmpty = errors.New("Superadmin JWT secret can't be empty")
-	ErrSuperadminEmailEmpty     = errors.New("Superadmin email can't be empty")
-	ErrSuperadminPasswordEmpty  = errors.New("Superadmin password can't be empty")
+	ErrLexicaAPIKeyEmpty       = errors.New("Lexica API Key can't be empty")
+	ErrJwtIssuerEmpty          = errors.New("JWT issuer can't be empty")
+	ErrJWTSecretEmpty          = errors.New("JWT secret can't be empty")
+	ErrSuperadminEmailEmpty    = errors.New("Superadmin email can't be empty")
+	ErrSuperadminPasswordEmpty = errors.New("Superadmin password can't be empty")
 )
 
 func ConfigureLexicaAPIKey(apiKey string) {
@@ -27,13 +29,17 @@ func ConfigureLexicaAPIKey(apiKey string) {
 	lexicaApiKey = apiKey
 }
 
-func ConfigureSuperadminJWTSecret(secret string) {
-	secret = strings.TrimSpace(secret)
+func ConfigureJWTProperties(issuer, secret string) {
+	issuer, secret = strings.TrimSpace(issuer), strings.TrimSpace(secret)
+	if len(issuer) == 0 {
+		log.Fatal().Err(ErrJwtIssuerEmpty).Msg("Failed to configure JWT properties")
+	}
 	if len(secret) == 0 {
-		log.Fatal().Err(ErrSuperadminJWTSecretEmpty).Msg("Failed to configure superadminJWTSecret")
+		log.Fatal().Err(ErrJWTSecretEmpty).Msg("Failed to configure JWT properties")
 	}
 
-	superadminJWTSecret = []byte(secret)
+	jwtIssuer = issuer
+	jwtSecret = []byte(secret)
 }
 
 func ConfigureSuperadmin(email, password string) {
