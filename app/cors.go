@@ -11,7 +11,7 @@ var allowedMethods []string
 var allowedHeaders []string
 
 func ConfigureCors(c Config) {
-	allowedOrigins = []string{c.ClientApplicationUrl}
+	allowedOrigins = []string{c.ClientApplicationUrl, c.CMSApplicationUrl}
 	allowedMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
 	if c.Env == "local" {
 		allowedOrigins = append(allowedOrigins, "http://localhost:3000")

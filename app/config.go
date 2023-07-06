@@ -18,6 +18,7 @@ type Config struct {
 	LexicaSuperadminPassword string `mapstructure:"LEXICA_SUPERADMIN_PASSWORD"`
 
 	ClientApplicationUrl string `mapstructure:"CLIENT_APPLICATION_URL"`
+	CMSApplicationUrl    string `mapstructure:"CMS_APPLICATION_URL"`
 
 	OpenAIOrganizationId string `mapstructure:"OPENAI_ORGANIZATION_ID"`
 	OpenAIAPIKey         string `mapstructure:"OPENAI_API_KEY"`
