@@ -50,6 +50,7 @@ func main() {
 
 	// Admin Routes
 	r.Group(func(r chi.Router) {
+		r.Mount("/admin/auth", auth.AdminRouter())
 		r.Mount("/admin/article", article.AdminRouter())
 	})
 
