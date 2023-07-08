@@ -26,7 +26,9 @@ jobs:
       
       - name: Build and Tag Image
         run: |
-          docker build -t "$REGISTRY/$REGISTRY_IMAGE:${{ github.sha }}" .
+          docker buildx build \
+          --platform linux/arm64/v8,linux/amd64 \
+          -t "$REGISTRY/$REGISTRY_IMAGE:${{ github.sha }}" .
           docker tag "$REGISTRY/$REGISTRY_IMAGE:${{ github.sha }}" "$REGISTRY/$REGISTRY_IMAGE:latest"
         
       - name: Publish to Container Registry
