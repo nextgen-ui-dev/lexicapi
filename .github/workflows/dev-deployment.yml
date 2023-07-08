@@ -1,4 +1,4 @@
-name: CD Workflow for Development Environment Deployment
+name: Workflow for Development Environment Deployment
 
 on:
   push:
