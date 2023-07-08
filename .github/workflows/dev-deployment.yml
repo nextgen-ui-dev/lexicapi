@@ -1,0 +1,55 @@
+name: CD Workflow for Development Environment Deployment
+
+on:
+  push:
+    branches:
+      - main
+      
+env:
+  DEV_CONFIG_ENV: ${{ secrets.DEV_CONFIG_ENV }}
+  DEV_SSH_HOST: ${{ secrets.DEV_SSH_HOST }}
+  DEV_SSH_PRIVATEKEY: ${{ secrets.DEV_SSH_PRIVATEKEY }}
+  DEV_SSH_USER: ${{ secrets.DEV_SSH_USER }}
+  REGISTRY: ${{ secrets.REGISTRY }}
+  REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+  REGISTRY_IMAGE: ${{ secrets.REGISTRY_IMAGE }}
+  REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+      
+jobs:
+  Dev-Deployment:
+    name: Development Deployment
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v3
+      
+      - name: Sign in to Container Registry
+        run: |
+          echo $REGISTRY_ACCESS_TOKEN \
+          | docker login -u $REGISTRY_USER --password-stdin $REGISTRY
+      
+      - name: Build and Tag Image
+        run: |
+          docker build -t "$REGISTRY/$REGISTRY_IMAGE:${{ github.sha }}" .
+          docker tag "$REGISTRY/$REGISTRY_IMAGE:${{ github.sha }}" "$REGISTRY/$REGISTRY_IMAGE:latest"
+        
+      - name: Publish to Container Registry
+        run: docker push "$REGISTRY/$REGISTRY_IMAGE:latest"
+        
+      - name: Pull Latest Image and Run Container
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: $DEV_SSH_HOST
+          username: $DEV_SSH_USER
+          key: $DEV_SSH_PRIVATEKEY
+          script: |
+            cd ./app/lexica
+            echo $DEV_CONFIG_ENV > .env
+            docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
+            docker run --name lexicapi-dev \
+              --restart always \
+              -v "$(pwd)/.env:/app/lexica/.env:ro" \
+              -v "$(pwd)/log/log.txt:/app/lexica/log/log.txt:ro" \
+              -p "8080:8080" \
+              "$REGISTRY/$REGISTRY_IMAGE:latest"
