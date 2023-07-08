@@ -46,8 +46,8 @@ jobs:
           script: |
             cd ./app/lexica
             echo $DEV_CONFIG_ENV > .env
-            docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
-            docker run --name lexicapi-dev \
+            sudo docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
+            sudo docker run --name lexicapi-dev \
               --restart always \
               -v "$(pwd)/.env:/app/lexica/.env:ro" \
               -v "$(pwd)/log/log.txt:/app/lexica/log/log.txt:ro" \
