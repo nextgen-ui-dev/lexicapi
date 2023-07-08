@@ -6,6 +6,9 @@ on:
       - main
       
 env:
+  DEV_SSH_HOST: ${{ secrets.DEV_SSH_HOST }}
+  DEV_SSH_USER: ${{ secrets.DEV_SSH_USER }}
+  DEV_SSH_PRIVATEKEY: ${{ secrets.DEV_SSH_PRIVATEKEY }}
   DEV_CONFIG_ENV: ${{ secrets.DEV_CONFIG_ENV }}
   REGISTRY: ${{ secrets.REGISTRY }}
   REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
@@ -37,11 +40,12 @@ jobs:
       - name: Pull Latest Image and Run Container
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.DEV_SSH_HOST }}
-          username: ${{ secrets.DEV_SSH_USER }}
-          key: ${{ secrets.DEV_SSH_PRIVATEKEY }}
+          host: $DEV_SSH_HOST
+          username: $DEV_SSH_USER
+          key: $DEV_SSH_PRIVATEKEY
+          envs: DEV_SSH_HOST,DEV_SSH_USER,DEV_SSH_PRIVATEKEY,DEV_CONFIG_ENV,REGISTRY,REGISTRY_IMAGE
           script: |
-            cd ./app/lexica
+            cd ./app/lexicapi
             echo $DEV_CONFIG_ENV > .env
             sudo docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
             sudo docker run --name lexicapi-dev \
