@@ -42,7 +42,7 @@ jobs:
           script: |
             cd ./app/lexicapi
             echo $DEV_CONFIG_ENV > .env
-            echo $REGISTRY_ACCESS_TOKEN | docker login -u $REGISTRY_USER --password-stdin $REGISTRY
+            echo $REGISTRY_ACCESS_TOKEN | sudo docker login -u $REGISTRY_USER --password-stdin $REGISTRY
             sudo docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
             sudo docker run --name lexicapi-dev \
               --restart always \
