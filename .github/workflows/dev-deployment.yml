@@ -47,13 +47,12 @@ jobs:
             cd ./app/lexicapi
             echo $DEV_CONFIG_ENV > .env
             mkdir ./log
-            touch -a ./log/log.txt
             echo $REGISTRY_ACCESS_TOKEN | sudo docker login -u $REGISTRY_USER --password-stdin $REGISTRY
             sudo docker rm -f lexicapi-dev
             sudo docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
             sudo docker run --name lexicapi-dev \
               --restart always \
               -v "$(pwd)/.env:/app/lexicapi/.env:ro" \
-              -v "$(pwd)/log/log.txt:/app/lexicapi/log/log.txt" \
+              -v "$(pwd)/log:/app/lexicapi/log" \
               -p "8080:8080" \
               "$REGISTRY/$REGISTRY_IMAGE:latest"
