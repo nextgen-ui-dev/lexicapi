@@ -7,6 +7,7 @@ on:
       
 env:
   DEV_CONFIG_ENV: ${{ secrets.DEV_CONFIG_ENV }}
+  DEV_TARGET_PLATFORMS: ${{ secrets.DEV_TARGET_PLATFORMS }}
   REGISTRY: ${{ secrets.REGISTRY }}
   REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
   REGISTRY_IMAGE: ${{ secrets.REGISTRY_IMAGE }}
@@ -26,9 +27,9 @@ jobs:
       
       - name: Build and Tag Image
         run: |
-          docker buildx build \
-          --platform linux/arm64/v8,linux/amd64 \
-          -t "$REGISTRY/$REGISTRY_IMAGE:${{ github.sha }}" .
+          docker build \
+            --platform $DEV_TARGET_PLATFORMS \
+            -t "$REGISTRY/$REGISTRY_IMAGE:${{ github.sha }}" .
           docker tag "$REGISTRY/$REGISTRY_IMAGE:${{ github.sha }}" "$REGISTRY/$REGISTRY_IMAGE:latest"
         
       - name: Publish to Container Registry
@@ -45,6 +46,7 @@ jobs:
             cd ./app/lexicapi
             echo $DEV_CONFIG_ENV > .env
             echo $REGISTRY_ACCESS_TOKEN | sudo docker login -u $REGISTRY_USER --password-stdin $REGISTRY
+            sudo docker rm -f lexicapi-dev
             sudo docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
             sudo docker run --name lexicapi-dev \
               --restart always \
