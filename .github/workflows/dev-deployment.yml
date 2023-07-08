@@ -50,7 +50,7 @@ jobs:
             sudo docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
             sudo docker run --name lexicapi-dev \
               --restart always \
-              -v "$(pwd)/.env:/app/lexica/.env:ro" \
-              -v "$(pwd)/log/log.txt:/app/lexica/log/log.txt:ro" \
+              -v "$(pwd)/.env:/app/lexicapi/.env:ro" \
+              -v "$(pwd)/log/log.txt:/app/lexicapi/log/log.txt:ro" \
               -p "8080:8080" \
               "$REGISTRY/$REGISTRY_IMAGE:latest"
