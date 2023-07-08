@@ -22,9 +22,7 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Sign in to Container Registry
-        run: |
-          echo $REGISTRY_ACCESS_TOKEN \
-          | docker login -u $REGISTRY_USER --password-stdin $REGISTRY
+        run: echo $REGISTRY_ACCESS_TOKEN | docker login -u $REGISTRY_USER --password-stdin $REGISTRY
       
       - name: Build and Tag Image
         run: |
@@ -40,10 +38,11 @@ jobs:
           host: ${{ secrets.DEV_SSH_HOST }}
           username: ${{ secrets.DEV_SSH_USER }}
           key: ${{ secrets.DEV_SSH_PRIVATEKEY }}
-          envs: DEV_CONFIG_ENV,REGISTRY,REGISTRY_IMAGE
+          envs: DEV_CONFIG_ENV,REGISTRY_ACCESS_TOKEN,REGISTRY_USER,REGISTRY,REGISTRY_IMAGE
           script: |
             cd ./app/lexicapi
             echo $DEV_CONFIG_ENV > .env
+            echo $REGISTRY_ACCESS_TOKEN | docker login -u $REGISTRY_USER --password-stdin $REGISTRY
             sudo docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
             sudo docker run --name lexicapi-dev \
               --restart always \
