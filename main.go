@@ -60,6 +60,7 @@ func main() {
 	// Normal Routes
 	r.Group(func(r chi.Router) {
 		r.Mount("/article", article.Router())
+		r.Mount("/assistant", assistant.Router())
 	})
 
 	log.Info().Msgf("Running server on port %s in %s mode...", config.Port, config.Env)
