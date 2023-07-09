@@ -2,7 +2,7 @@
 FROM golang:alpine AS builder
 
 # Install git
-RUN apk update && apk add --no-cache git tzdata
+RUN apk update && apk add --no-cache git tzdata ca-certificates && update-ca-certificates
 
 # Create unprivileged user
 ENV USER=lexica
@@ -31,7 +31,8 @@ RUN GOOS=linux GOARCH=amd64 go build -o ./bin/main main.go
 FROM scratch
 WORKDIR /app/lexicapi
 
-# Import user files and timezone info
+# Import user files, certificates, and timezone info
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
