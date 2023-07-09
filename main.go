@@ -9,6 +9,7 @@ import (
 	"github.com/lexica-app/lexicapi/adapters"
 	"github.com/lexica-app/lexicapi/app"
 	"github.com/lexica-app/lexicapi/app/article"
+	"github.com/lexica-app/lexicapi/app/assistant"
 	"github.com/lexica-app/lexicapi/app/auth"
 	"github.com/lexica-app/lexicapi/db"
 	"github.com/rs/zerolog/log"
@@ -30,6 +31,8 @@ func main() {
 
 	article.SetPool(pool)
 	article.SetOpenAIAdapter(openaiAdapter)
+
+	assistant.SetOpenAIAdapter(openaiAdapter)
 
 	auth.ConfigureLexicaAPIKey(config.LexicaApiKey)
 	auth.ConfigureJWTProperties(config.LexicaJwtIssuer, config.LexicaJwtSecret)
