@@ -46,12 +46,13 @@ jobs:
             mkdir -pv ./app/lexicapi
             cd ./app/lexicapi
             echo $DEV_CONFIG_ENV > .env
-            mkdir ./log
+            mkdir ./log && chown :lexica ./log && chmod g+s ./log
             echo $REGISTRY_ACCESS_TOKEN | docker login -u $REGISTRY_USER --password-stdin $REGISTRY
             docker rm -f lexicapi-dev
             docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
             docker run --name lexicapi-dev \
               --restart always \
               -v "$(pwd)/.env:/app/lexicapi/.env:ro" \
+              -v "$(pwd)/log:/app/lexicapi/log:z" \
               -p "8080:8080" \
               "$REGISTRY/$REGISTRY_IMAGE:latest"
