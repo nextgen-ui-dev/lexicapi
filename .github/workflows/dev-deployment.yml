@@ -46,7 +46,7 @@ jobs:
             mkdir -pv ./app/lexicapi
             cd ./app/lexicapi
             echo $DEV_CONFIG_ENV > .env
-            mkdir ./log && chown :lexica ./log && chmod g+s ./log
+            mkdir ./log && sudo chown :lexica ./log && sudo chmod g+s ./log
             echo $REGISTRY_ACCESS_TOKEN | docker login -u $REGISTRY_USER --password-stdin $REGISTRY
             docker rm -f lexicapi-dev
             docker pull "$REGISTRY/$REGISTRY_IMAGE:latest"
