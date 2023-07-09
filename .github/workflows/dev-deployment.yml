@@ -53,6 +53,6 @@ jobs:
             sudo docker run --name lexicapi-dev \
               --restart always \
               -v "$(pwd)/.env:/app/lexicapi/.env:ro" \
-              -v "$(pwd)/log:/app/lexicapi/log" \
+              -v "$(pwd)/log:/app/lexicapi/log:z" \
               -p "8080:8080" \
               "$REGISTRY/$REGISTRY_IMAGE:latest"
