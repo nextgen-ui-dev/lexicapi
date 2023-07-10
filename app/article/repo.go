@@ -123,8 +123,22 @@ func findArticles(
     WHERE deleted_at IS NULL AND title ILIKE '%' || $1 || '%' AND ` + categoryFilter + `
     ORDER BY id DESC
     )`
-	sBuilder := psql.Select("rows.row", "a.*").From("articles a").InnerJoin("rows ON rows.id = a.id")
-	sBuilder = sBuilder.Where("title ILIKE '%' || ? || '%'").Where("deleted_at IS NULL")
+	sBuilder := psql.
+		Select(
+			"rows.row",
+			"a.*",
+			"(CASE WHEN ac.deleted_at IS NULL THEN ac.name ELSE 'Deleted Category' END) category_name",
+			"(CASE WHEN LENGTH(at.content) >= 255 THEN SUBSTRING(at.content, 1, 255) || '...' ELSE at.content END) teaser",
+		).
+		From("articles a").
+		InnerJoin("rows ON rows.id = a.id").
+		InnerJoin("article_categories ac ON a.category_id = ac.id").
+		InnerJoin("article_texts at ON a.id = at.article_id")
+	sBuilder = sBuilder.
+		Where("title ILIKE '%' || ? || '%'").
+		Where("a.deleted_at IS NULL").
+		Where("at.difficulty = 'ADVANCED'").
+		Where("at.deleted_at IS NULL")
 
 	if categoryId != (ulid.ULID{}) {
 		sBuilder = sBuilder.Where(sq.Eq{"category_id": categoryId})
@@ -162,7 +176,7 @@ func findArticles(
 		return articles, err
 	}
 
-	totalQuery := strings.ReplaceAll(q, "rows.row, a.*", "COUNT(*) total")
+	totalQuery := strings.ReplaceAll(q, "rows.row, a.*, (CASE WHEN ac.deleted_at IS NULL THEN ac.name ELSE 'Deleted Category' END) category_name, (CASE WHEN LENGTH(at.content) >= 255 THEN SUBSTRING(at.content, 1, 255) || '...' ELSE at.content END) teaser", "COUNT(*) total")
 	totalQuery = strings.ReplaceAll(totalQuery, "INNER JOIN rows ON rows.id = a.id", "")
 	totalQuery = strings.ReplaceAll(totalQuery, fmt.Sprintf("AND a.id >= $3 ORDER BY a.id ASC LIMIT %d", pageSize+1), "")
 	totalQuery = strings.ReplaceAll(totalQuery, fmt.Sprintf("AND a.id <= $3 ORDER BY a.id DESC LIMIT %d", pageSize+1), "")

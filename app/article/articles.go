@@ -16,7 +16,13 @@ type Articles struct {
 	Articles []*ArticleWithRowNumber `json:"articles"`
 }
 
-type ArticleWithRowNumber struct {
+type ArticleViewModel struct {
 	Article
+	Teaser       string `json:"teaser"`
+	CategoryName string `json:"category_name"`
+}
+
+type ArticleWithRowNumber struct {
+	ArticleViewModel
 	Row uint `json:"row"`
 }
