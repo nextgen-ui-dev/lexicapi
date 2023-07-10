@@ -11,7 +11,10 @@ type Config struct {
 	Port string `mapstructure:"PORT"`
 
 	LexicaJwtIssuer string `mapstructure:"LEXICA_JWT_ISSUER"`
-	LexicaJwtSecret string `mapstructure:"LEXICA_JWT_SECRET"`
+
+	LexicaJwtSuperadminSecret   string `mapstructure:"LEXICA_JWT_SUPERADMIN_SECRET"`
+	LexicaJwtAccessTokenSecret  string `mapstructure:"LEXICA_JWT_ACCESS_TOKEN_SECRET"`
+	LexicaJwtRefreshTokenSecret string `mapstructure:"LEXICA_JWT_REFRESH_TOKEN_SECRET"`
 
 	LexicaApiKey             string `mapstructure:"LEXICA_API_KEY"`
 	LexicaSuperadminEmail    string `mapstructure:"LEXICA_SUPERADMIN_EMAIL"`

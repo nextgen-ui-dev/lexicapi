@@ -31,7 +31,7 @@ func validateSuperadminAccessToken(tokenStr string) (token *jwt.Token, claims *a
 			if !isAccSigningMethod {
 				return nil, ErrInvalidJWTSigningMethod
 			}
-			return jwtSecret, nil
+			return jwtSuperadminSecret, nil
 		},
 		jwt.WithIssuer(jwtIssuer),
 		jwt.WithAudience(jwtIssuer),
@@ -64,7 +64,7 @@ func generateSuperadminAccessToken() (token string, err error) {
 		Scopes: "ROLE_SUPERADMIN",
 	})
 
-	token, err = tokenObj.SignedString(jwtSecret)
+	token, err = tokenObj.SignedString(jwtSuperadminSecret)
 	if err != nil {
 		log.Err(err).Msg("Failed to generate superadmin access token")
 		return

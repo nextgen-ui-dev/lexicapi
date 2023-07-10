@@ -35,7 +35,12 @@ func main() {
 	assistant.SetOpenAIAdapter(openaiAdapter)
 
 	auth.ConfigureLexicaAPIKey(config.LexicaApiKey)
-	auth.ConfigureJWTProperties(config.LexicaJwtIssuer, config.LexicaJwtSecret)
+	auth.ConfigureJWTProperties(
+		config.LexicaJwtIssuer,
+		config.LexicaJwtSuperadminSecret,
+		config.LexicaJwtAccessTokenSecret,
+		config.LexicaJwtRefreshTokenSecret,
+	)
 	auth.ConfigureSuperadmin(config.LexicaSuperadminEmail, config.LexicaSuperadminPassword)
 
 	r := chi.NewRouter()
