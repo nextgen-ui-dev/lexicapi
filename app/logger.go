@@ -13,8 +13,11 @@ import (
 )
 
 var HttpLogger zerolog.Logger
+var env string
 
 func ConfigureLogger(c Config) {
+	env = c.Env
+
 	if _, err := os.Stat("log"); os.IsNotExist(err) {
 		os.Mkdir("log", os.ModePerm)
 	}
@@ -46,11 +49,15 @@ func ReqLoggerMiddleware(next http.Handler) http.Handler {
 
 		start := time.Now()
 		defer func() {
+			origin := r.RemoteAddr
+			if env != "local" {
+				origin = r.Header.Get("X-Forwarded-For")
+			}
 			HttpLogger.Info().Fields(map[string]interface{}{
 				"method":     r.Method,
 				"version":    r.Proto,
 				"status":     ww.Status(),
-				"origin":     r.RemoteAddr,
+				"origin":     origin,
 				"host":       r.Host,
 				"path":       r.URL.Path,
 				"user_agent": r.Header.Get("User-Agent"),
