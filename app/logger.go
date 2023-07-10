@@ -50,7 +50,7 @@ func ReqLoggerMiddleware(next http.Handler) http.Handler {
 		start := time.Now()
 		defer func() {
 			origin := r.RemoteAddr
-			if env != "local" {
+			if env != "local" && r.Header.Get("X-Forwarded-For") != "" {
 				origin = r.Header.Get("X-Forwarded-For")
 			}
 			HttpLogger.Info().Fields(map[string]interface{}{
