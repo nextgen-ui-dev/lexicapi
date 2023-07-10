@@ -22,6 +22,12 @@ type ArticleViewModel struct {
 	CategoryName string `json:"category_name"`
 }
 
+type ArticleDetail struct {
+	Article
+	CategoryName string                 `json:"category_name"`
+	Texts        map[string]ArticleText `json:"texts"`
+}
+
 type ArticleWithRowNumber struct {
 	ArticleViewModel
 	Row uint `json:"row"`

@@ -370,6 +370,19 @@ func getArticleById(ctx context.Context, idStr string) (articleDetail ArticleDet
 		return
 	}
 
+	var categoryName string
+	category, err := findArticleCategoryById(ctx, tx, article.CategoryId)
+	if err != nil {
+		if err != ErrArticleCategoryDoesNotExist {
+			return
+		}
+
+		categoryName = "Deleted Category"
+		err = nil
+	} else {
+		categoryName = category.Name
+	}
+
 	texts, err := findArticleTextsByArticleId(ctx, tx, article.Id)
 	if err != nil {
 		return
@@ -385,7 +398,7 @@ func getArticleById(ctx context.Context, idStr string) (articleDetail ArticleDet
 		textMap[text.Difficulty] = *text
 	}
 
-	return ArticleDetail{Article: article, Texts: textMap}, nil
+	return ArticleDetail{Article: article, CategoryName: categoryName, Texts: textMap}, nil
 }
 
 func updateArticle(ctx context.Context, idStr string, body updateArticleReq) (article Article, errs map[string]error, err error) {
