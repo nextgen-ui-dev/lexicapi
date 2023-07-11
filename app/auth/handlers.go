@@ -6,6 +6,15 @@ import (
 	"github.com/lexica-app/lexicapi/app"
 )
 
+func getUserInfoHandler(w http.ResponseWriter, r *http.Request) {
+	user, ok := r.Context().Value(UserInfoCtx).(User)
+	if !ok {
+		app.WriteHttpError(w, http.StatusUnauthorized, ErrInvalidAccessToken)
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, user)
+}
+
 func signInWithGoogleHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

@@ -15,5 +15,11 @@ func Router() *chi.Mux {
 
 	r.Post("/sign-in/google", signInWithGoogleHandler)
 
+	r.Group(func(r chi.Router) {
+		r.Use(UserAuthMiddleware)
+
+		r.Get("/userinfo", getUserInfoHandler)
+	})
+
 	return r
 }
