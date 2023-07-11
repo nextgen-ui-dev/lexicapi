@@ -34,6 +34,7 @@ func main() {
 
 	assistant.SetOpenAIAdapter(openaiAdapter)
 
+	auth.ConfigureGoogleOAuth(config.GoogleOAuthClientId)
 	auth.ConfigureLexicaAPIKey(config.LexicaApiKey)
 	auth.ConfigureJWTProperties(
 		config.LexicaJwtIssuer,

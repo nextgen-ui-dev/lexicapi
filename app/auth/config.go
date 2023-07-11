@@ -13,8 +13,10 @@ var (
 	jwtSuperadminSecret   []byte
 	jwtAccessTokenSecret  []byte
 	jwtRefreshTokenSecret []byte
+	googleOAuthClientId   string
 	superadmin            *Superadmin
 
+	ErrGoogleOAuthClientIdEmpty   = errors.New("Google OAuth client id can't be empty")
 	ErrLexicaAPIKeyEmpty          = errors.New("Lexica API Key can't be empty")
 	ErrJwtIssuerEmpty             = errors.New("JWT issuer can't be empty")
 	ErrJWTSuperadminSecretEmpty   = errors.New("JWT superadmin secret can't be empty")
@@ -23,6 +25,15 @@ var (
 	ErrSuperadminEmailEmpty       = errors.New("Superadmin email can't be empty")
 	ErrSuperadminPasswordEmpty    = errors.New("Superadmin password can't be empty")
 )
+
+func ConfigureGoogleOAuth(clientId string) {
+	clientId = strings.TrimSpace(clientId)
+	if len(clientId) == 0 {
+		log.Fatal().Err(ErrGoogleOAuthClientIdEmpty).Msg("Failed to configure Google OAuth")
+	}
+
+	googleOAuthClientId = clientId
+}
 
 func ConfigureLexicaAPIKey(apiKey string) {
 	apiKey = strings.TrimSpace(apiKey)
