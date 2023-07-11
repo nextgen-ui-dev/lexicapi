@@ -9,3 +9,11 @@ func AdminRouter() *chi.Mux {
 
 	return r
 }
+
+func Router() *chi.Mux {
+	r := chi.NewRouter()
+
+	r.Post("/sign-in/google", signInWithGoogleHandler)
+
+	return r
+}

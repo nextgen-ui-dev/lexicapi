@@ -65,6 +65,7 @@ func main() {
 
 	// Normal Routes
 	r.Group(func(r chi.Router) {
+		r.Mount("/auth", auth.Router())
 		r.Mount("/article", article.Router())
 		r.Mount("/assistant", assistant.Router())
 	})
