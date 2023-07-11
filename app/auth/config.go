@@ -4,17 +4,22 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 )
 
 var (
+	pool                  *pgxpool.Pool
 	lexicaApiKey          string
 	jwtIssuer             string
 	jwtSuperadminSecret   []byte
 	jwtAccessTokenSecret  []byte
 	jwtRefreshTokenSecret []byte
+	googleOAuthClientId   string
 	superadmin            *Superadmin
 
+	ErrNilPool                    = errors.New("Connection pool can't be nil")
+	ErrGoogleOAuthClientIdEmpty   = errors.New("Google OAuth client id can't be empty")
 	ErrLexicaAPIKeyEmpty          = errors.New("Lexica API Key can't be empty")
 	ErrJwtIssuerEmpty             = errors.New("JWT issuer can't be empty")
 	ErrJWTSuperadminSecretEmpty   = errors.New("JWT superadmin secret can't be empty")
@@ -23,6 +28,23 @@ var (
 	ErrSuperadminEmailEmpty       = errors.New("Superadmin email can't be empty")
 	ErrSuperadminPasswordEmpty    = errors.New("Superadmin password can't be empty")
 )
+
+func SetPool(newPool *pgxpool.Pool) {
+	if newPool == nil {
+		log.Fatal().Err(ErrNilPool).Msg("Failed to set connection pool for auth module")
+	}
+
+	pool = newPool
+}
+
+func ConfigureGoogleOAuth(clientId string) {
+	clientId = strings.TrimSpace(clientId)
+	if len(clientId) == 0 {
+		log.Fatal().Err(ErrGoogleOAuthClientIdEmpty).Msg("Failed to configure Google OAuth")
+	}
+
+	googleOAuthClientId = clientId
+}
 
 func ConfigureLexicaAPIKey(apiKey string) {
 	apiKey = strings.TrimSpace(apiKey)

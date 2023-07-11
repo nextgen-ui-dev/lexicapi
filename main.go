@@ -34,6 +34,8 @@ func main() {
 
 	assistant.SetOpenAIAdapter(openaiAdapter)
 
+	auth.SetPool(pool)
+	auth.ConfigureGoogleOAuth(config.GoogleOAuthClientId)
 	auth.ConfigureLexicaAPIKey(config.LexicaApiKey)
 	auth.ConfigureJWTProperties(
 		config.LexicaJwtIssuer,
@@ -64,6 +66,7 @@ func main() {
 
 	// Normal Routes
 	r.Group(func(r chi.Router) {
+		r.Mount("/auth", auth.Router())
 		r.Mount("/article", article.Router())
 		r.Mount("/assistant", assistant.Router())
 	})

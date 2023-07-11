@@ -10,8 +10,9 @@ type Config struct {
 	Env  string `mapstructure:"ENV"`
 	Port string `mapstructure:"PORT"`
 
-	LexicaJwtIssuer string `mapstructure:"LEXICA_JWT_ISSUER"`
+	GoogleOAuthClientId string `mapstructure:"GOOGLE_OAUTH_CLIENT_ID"`
 
+	LexicaJwtIssuer             string `mapstructure:"LEXICA_JWT_ISSUER"`
 	LexicaJwtSuperadminSecret   string `mapstructure:"LEXICA_JWT_SUPERADMIN_SECRET"`
 	LexicaJwtAccessTokenSecret  string `mapstructure:"LEXICA_JWT_ACCESS_TOKEN_SECRET"`
 	LexicaJwtRefreshTokenSecret string `mapstructure:"LEXICA_JWT_REFRESH_TOKEN_SECRET"`
