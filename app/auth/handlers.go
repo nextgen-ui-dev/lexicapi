@@ -7,9 +7,24 @@ import (
 )
 
 func signInWithGoogleHandler(w http.ResponseWriter, r *http.Request) {
-	_ = r.Context()
+	ctx := r.Context()
 
-	_ = r.Header.Get("X-Google-Id-Token")
+	idToken := r.Header.Get("X-Google-Id-Token")
 
-	app.WriteHttpBodyJson(w, http.StatusOK, map[string]string{"message": "Unimplemented"})
+	tokens, errs, err := signInWithGoogle(ctx, idToken)
+	if errs != nil {
+		app.WriteHttpErrors(w, http.StatusBadRequest, errs)
+		return
+	}
+	if err != nil {
+		switch err {
+		case ErrInvalidGoogleIdToken:
+			app.WriteHttpError(w, http.StatusUnauthorized, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, tokens)
 }
