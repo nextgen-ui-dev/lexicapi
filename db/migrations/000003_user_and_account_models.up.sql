@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(255),
   email VARCHAR(255),
   image_url TEXT,
-  status VARCHAR(20) NOT NULL,
+  status INTEGER NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
   updated_at TIMESTAMPTZ,
   deleted_at TIMESTAMPTZ,

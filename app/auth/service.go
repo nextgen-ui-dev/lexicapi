@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	"gopkg.in/guregu/null.v4"
@@ -38,6 +37,11 @@ func signInWithGoogle(ctx context.Context, idToken string) (signIn UserSignIn, e
 			return
 		}
 
+		user, err = saveUser(ctx, tx, user)
+		if err != nil {
+			return
+		}
+
 		account, err = findAccountByProviderAndProviderAccountId(ctx, tx, GOOGLE, accountId)
 		if err != nil {
 			if err != ErrAccountDoesNotExist {
@@ -52,6 +56,11 @@ func signInWithGoogle(ctx context.Context, idToken string) (signIn UserSignIn, e
 				accountId,
 			)
 			if errs != nil {
+				return
+			}
+
+			account, err = saveAccount(ctx, tx, account)
+			if err != nil {
 				return
 			}
 		}
@@ -72,10 +81,18 @@ func signInWithGoogle(ctx context.Context, idToken string) (signIn UserSignIn, e
 			if errs != nil {
 				return
 			}
+
+			account, err = saveAccount(ctx, tx, account)
+			if err != nil {
+				return
+			}
 		}
 	}
 
-	fmt.Println(user, account)
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to sign in with Google")
+		return
+	}
 
 	accessToken, err := generateUserAccessToken(user.Id.String())
 	if err != nil {
