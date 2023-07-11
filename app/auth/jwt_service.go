@@ -20,6 +20,50 @@ type accessTokenClaims struct {
 	Scopes string `json:"scopes"`
 }
 
+func generateUserAccessToken(userId string) (token string, err error) {
+	tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    jwtIssuer,
+			Audience:  []string{jwtIssuer},
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+			ID:        ulid.Make().String(),
+			Subject:   userId,
+		},
+		Scopes: "ROLE_USER",
+	})
+
+	token, err = tokenObj.SignedString(jwtAccessTokenSecret)
+	if err != nil {
+		log.Err(err).Msg("Failed to generate user access token")
+		return
+	}
+
+	return token, nil
+}
+
+func generateUserRefreshToken(userId string) (token string, err error) {
+	tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenClaims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    jwtIssuer,
+			Audience:  []string{jwtIssuer},
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+			ID:        ulid.Make().String(),
+			Subject:   userId,
+		},
+		Scopes: "ROLE_USER",
+	})
+
+	token, err = tokenObj.SignedString(jwtRefreshTokenSecret)
+	if err != nil {
+		log.Err(err).Msg("Failed to generate user refresh token")
+		return
+	}
+
+	return token, nil
+}
+
 func validateSuperadminAccessToken(tokenStr string) (token *jwt.Token, claims *accessTokenClaims, err error) {
 	claims = &accessTokenClaims{}
 	token, err = jwt.ParseWithClaims(

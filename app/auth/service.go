@@ -77,5 +77,19 @@ func signInWithGoogle(ctx context.Context, idToken string) (signIn UserSignIn, e
 
 	fmt.Println(user, account)
 
-	return signIn, nil, nil
+	accessToken, err := generateUserAccessToken(user.Id.String())
+	if err != nil {
+		return
+	}
+
+	refreshToken, err := generateUserRefreshToken(user.Id.String())
+	if err != nil {
+		return
+	}
+
+	return UserSignIn{
+		UserId:       user.Id,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil, nil
 }
