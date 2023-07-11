@@ -21,5 +21,11 @@ func Router() *chi.Mux {
 		r.Get("/userinfo", getUserInfoHandler)
 	})
 
+	r.Group(func(r chi.Router) {
+		r.Use(UserRefreshTokenMiddleware)
+
+		r.Post("/refresh-token", refreshTokenHandler)
+	})
+
 	return r
 }

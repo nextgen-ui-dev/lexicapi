@@ -7,6 +7,24 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
+func refreshToken(ctx context.Context, user User) (signIn UserSignIn, err error) {
+	accessToken, err := generateUserAccessToken(user.Id.String())
+	if err != nil {
+		return
+	}
+
+	refreshToken, err := generateUserRefreshToken(user.Id.String())
+	if err != nil {
+		return
+	}
+
+	return UserSignIn{
+		UserId:       user.Id,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
 func signInWithGoogle(ctx context.Context, idToken string) (signIn UserSignIn, errs map[string]error, err error) {
 	payload, err := validateUserGoogleIdToken(ctx, idToken)
 	if err != nil {
