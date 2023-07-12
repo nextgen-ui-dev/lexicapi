@@ -170,7 +170,7 @@ func findArticles(
 	}
 
 	articleQuery := rowNumber + " " + q
-	var listOfArticles []*ArticleWithRowNumber
+  listOfArticles := []*ArticleWithRowNumber{}
 	if err = pgxscan.Select(ctx, tx, &listOfArticles, articleQuery, query, categoryId, cursor); err != nil {
 		log.Err(err).Msg("Failed to get articles")
 		return articles, err
