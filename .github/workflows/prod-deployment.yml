@@ -1,9 +1,7 @@
 name: Workflow for Production Environment Deployment
 
 on:
-  push:
-    branches:
-      - stable
+  workflow_dispatch:
       
 env:
   CONFIG_ENV: ${{ secrets.CONFIG_ENV }}
@@ -57,3 +55,15 @@ jobs:
               -v "$(pwd)/log:/app/lexicapi/log:z" \
               -p "8081:8081" \
               "$REGISTRY/$REGISTRY_IMAGE:stable"
+      
+      - name: Get Release Date
+        id: get_release_date
+        run: echo "RELEASE_DATE=$(TZ='Asia/Jakarta' date +'%A %d-%m-%Y %T WIB')" >> "$GITHUB_OUTPUT"
+      
+      - name: Mark as Stable
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          body: "Stable release updated at ${{ steps.get_release_date.outputs.RELEASE_DATE }}"
+          token: ${{ secrets.GH_TOKEN }}
+          tag: stable
