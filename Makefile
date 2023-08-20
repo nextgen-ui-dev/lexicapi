@@ -1,3 +1,6 @@
+#!make
+include .env
+
 .PHONY: build migrate migrate-down migrate-fix
 
 install:
@@ -25,10 +28,10 @@ migration:
 	migrate create -seq -ext sql -dir db/migrations $(filter-out $@,$(MAKECMDGOALS))
 
 migrate:
-	go run db/migrations/migrate.go $(filter-out $@,$(MAKECMDGOALS))
+	migrate -path db/migrations -database "postgres://${DB_USER}:${DB_PWD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?${DB_SSL}" up $(filter-out $@,$(MAKECMDGOALS))
 
 migrate-down:
-	go run db/migrations/migrate.go -action down $(filter-out $@,$(MAKECMDGOALS))
+	migrate -path db/migrations -database "postgres://${DB_USER}:${DB_PWD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?${DB_SSL}" down $(filter-out $@,$(MAKECMDGOALS))
 
 migrate-fix:
-	go run db/migrations/migrate.go -action force -version $(filter-out $@,$(MAKECMDGOALS))
+	migrate -path db/migrations -database "postgres://${DB_USER}:${DB_PWD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?${DB_SSL}" force $(filter-out $@,$(MAKECMDGOALS))
