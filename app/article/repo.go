@@ -107,7 +107,7 @@ func updateArticleCategoryById(ctx context.Context, tx pgx.Tx, id ulid.ULID, nam
 func findArticles(
 	ctx context.Context, tx pgx.Tx,
 	query string, categoryId ulid.ULID, pageSize uint, direction ArticlePaginationDirection,
-	cursor ulid.ULID,
+	cursor ulid.ULID, includeUnpublished bool,
 ) (articles Articles, err error) {
 	psql := sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
@@ -134,6 +134,11 @@ func findArticles(
 		InnerJoin("rows ON rows.id = a.id").
 		InnerJoin("article_categories ac ON a.category_id = ac.id").
 		InnerJoin("article_texts at ON a.id = at.article_id")
+
+	if !includeUnpublished {
+		sBuilder = sBuilder.Where("a.is_published IS TRUE")
+	}
+
 	sBuilder = sBuilder.
 		Where("title ILIKE '%' || ? || '%'").
 		Where("a.deleted_at IS NULL").
@@ -170,7 +175,7 @@ func findArticles(
 	}
 
 	articleQuery := rowNumber + " " + q
-  listOfArticles := []*ArticleWithRowNumber{}
+	listOfArticles := []*ArticleWithRowNumber{}
 	if err = pgxscan.Select(ctx, tx, &listOfArticles, articleQuery, query, categoryId, cursor); err != nil {
 		log.Err(err).Msg("Failed to get articles")
 		return articles, err

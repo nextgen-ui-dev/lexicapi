@@ -269,7 +269,15 @@ func updateArticleCategory(ctx context.Context, idStr, name string) (category Ar
 	return category, nil
 }
 
-func getArticles(ctx context.Context, query string, categoryIdStr string, pageSize uint, directionStr string, cursorStr string) (articles Articles, err error) {
+func getArticles(
+	ctx context.Context,
+	query string,
+	categoryIdStr string,
+	pageSize uint,
+	directionStr string,
+	cursorStr string,
+	includeUnpublished bool,
+) (articles Articles, err error) {
 	query = strings.TrimSpace(query)
 	categoryId, err := validateArticleCategoryId(categoryIdStr)
 	if err != nil {
@@ -297,7 +305,7 @@ func getArticles(ctx context.Context, query string, categoryIdStr string, pageSi
 
 	defer tx.Rollback(ctx)
 
-	articles, err = findArticles(ctx, tx, query, categoryId, pageSize, direction, cursor)
+	articles, err = findArticles(ctx, tx, query, categoryId, pageSize, direction, cursor, includeUnpublished)
 	if err != nil {
 		return
 	}

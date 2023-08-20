@@ -17,7 +17,7 @@ type createArticleReq struct {
 	OriginalUrl     string      `json:"original_url"`
 	Source          string      `json:"source"`
 	Author          null.String `json:"author"`
-	IsPublished     bool        `json:"is_published"`
+	IsPublished     null.Bool   `json:"is_published"`
 	OriginalContent string      `json:"original_content"`
 }
 
@@ -28,7 +28,7 @@ type updateArticleReq struct {
 	OriginalUrl  string      `json:"original_url"`
 	Source       string      `json:"source"`
 	Author       null.String `json:"author"`
-	IsPublished  bool        `json:"is_published"`
+	IsPublished  null.Bool   `json:"is_published"`
 }
 
 type ArticlePaginationDirection string

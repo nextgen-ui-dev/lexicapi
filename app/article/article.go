@@ -28,7 +28,7 @@ func NewArticle(
 	originalUrl string,
 	source string,
 	author null.String,
-	isPublished bool,
+	isPublished null.Bool,
 ) (Article, map[string]error) {
 	errs := make(map[string]error)
 
@@ -66,7 +66,7 @@ func NewArticle(
 		OriginalUrl:  originalUrl,
 		Source:       source,
 		Author:       author,
-		IsPublished:  isPublished,
+		IsPublished:  isPublished.Valid && isPublished.Bool,
 		CreatedAt:    time.Now(),
 	}, nil
 }
@@ -78,7 +78,7 @@ func (a *Article) Update(
 	originalUrl string,
 	source string,
 	author null.String,
-	isPublished bool,
+	isPublished null.Bool,
 ) map[string]error {
 	errs := make(map[string]error)
 
@@ -112,6 +112,9 @@ func (a *Article) Update(
 	a.OriginalUrl = originalUrl
 	a.Source = source
 	a.Author = author
+	if isPublished.Valid {
+		a.IsPublished = isPublished.Bool
+	}
 	a.UpdatedAt = null.NewTime(time.Now(), true)
 
 	return nil

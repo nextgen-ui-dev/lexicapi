@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/lexica-app/lexicapi/app"
@@ -214,12 +215,14 @@ func getArticlesHandler(w http.ResponseWriter, r *http.Request) {
 	direction := r.URL.Query().Get("direction")
 	cursor := r.URL.Query().Get("cursor")
 
+	includeUnpublished := strings.HasPrefix(r.URL.Path, "/admin")
+
 	pageSize, err := strconv.Atoi(pageSizeStr)
 	if err != nil || pageSize <= 0 {
 		pageSize = 100
 	}
 
-	articles, err := getArticles(ctx, q, categoryId, uint(pageSize), direction, cursor)
+	articles, err := getArticles(ctx, q, categoryId, uint(pageSize), direction, cursor, includeUnpublished)
 	if err != nil {
 		switch {
 		default:
