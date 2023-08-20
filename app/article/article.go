@@ -72,49 +72,67 @@ func NewArticle(
 }
 
 func (a *Article) Update(
-	categoryIdStr string,
-	title string,
+	categoryIdStr null.String,
+	title null.String,
 	thumbnailUrl null.String,
-	originalUrl string,
-	source string,
+	originalUrl null.String,
+	source null.String,
 	author null.String,
 	isPublished null.Bool,
 ) map[string]error {
 	errs := make(map[string]error)
 
-	categoryId, err := validateArticleCategoryId(categoryIdStr)
-	if err != nil {
-		errs["category_id"] = err
+	if categoryIdStr.Valid {
+		categoryId, err := validateArticleCategoryId(categoryIdStr.String)
+		if err != nil {
+			errs["category_id"] = err
+		}
+		a.CategoryId = categoryId
 	}
-	if err = validateArticleTitle(title); err != nil {
-		errs["title"] = err
+
+	if title.Valid {
+		if err := validateArticleTitle(title.String); err != nil {
+			errs["title"] = err
+		}
+		a.Title = title.String
 	}
-	if err = validateArticleThumbnailUrl(thumbnailUrl.String); err != nil {
-		errs["thumbnail_url"] = err
+
+	if thumbnailUrl.Valid {
+		if err := validateArticleThumbnailUrl(thumbnailUrl.String); err != nil {
+			errs["thumbnail_url"] = err
+		}
+		a.ThumbnailUrl = thumbnailUrl
 	}
-	if err = validateArticleOriginalUrl(originalUrl); err != nil {
-		errs["original_url"] = err
+
+	if originalUrl.Valid {
+		if err := validateArticleOriginalUrl(originalUrl.String); err != nil {
+			errs["original_url"] = err
+		}
+		a.OriginalUrl = originalUrl.String
 	}
-	if err = validateArticleSource(source); err != nil {
-		errs["source"] = err
+
+	if source.Valid {
+		if err := validateArticleSource(source.String); err != nil {
+			errs["source"] = err
+		}
+		a.Source = source.String
 	}
-	if err = validateArticleAuthor(author.String); err != nil {
-		errs["author"] = err
+
+	if author.Valid {
+		if err := validateArticleAuthor(author.String); err != nil {
+			errs["author"] = err
+		}
+		a.Author = author
+	}
+
+	if isPublished.Valid {
+		a.IsPublished = isPublished.Bool
 	}
 
 	if len(errs) != 0 {
 		return errs
 	}
 
-	a.CategoryId = categoryId
-	a.Title = title
-	a.ThumbnailUrl = thumbnailUrl
-	a.OriginalUrl = originalUrl
-	a.Source = source
-	a.Author = author
-	if isPublished.Valid {
-		a.IsPublished = isPublished.Bool
-	}
 	a.UpdatedAt = null.NewTime(time.Now(), true)
 
 	return nil
