@@ -12,7 +12,7 @@ import (
 
 var (
 	ErrInvalidOpenAIAPIKey = errors.New("Invalid OpenAI API key")
-	ErrOpenAIRateLimited   = errors.New("OpenAI has rate limited us due to too many requests. Please try again later.")
+	ErrOpenAIRateLimited   = errors.New("OpenAI has rate limited us due to too many requests. Please try again later")
 	ErrOpenAIServiceError  = errors.New("OpenAI service is currently unavailable. Please try again later")
 )
 

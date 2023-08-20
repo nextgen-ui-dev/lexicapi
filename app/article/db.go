@@ -10,7 +10,7 @@ import (
 var (
 	pool *pgxpool.Pool
 
-	ErrNilPool = errors.New("Connection pool can't be nil")
+	ErrNilPool = errors.New("connection pool can't be nil")
 )
 
 func SetPool(newPool *pgxpool.Pool) {

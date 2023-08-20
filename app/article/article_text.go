@@ -11,8 +11,8 @@ type ArticleTextDifficultyPreset string
 
 const (
 	ADVANCED     ArticleTextDifficultyPreset = "ADVANCED"
-	INTERMEDIATE                             = "INTERMEDIATE"
-	BEGINNER                                 = "BEGINNER"
+	INTERMEDIATE ArticleTextDifficultyPreset = "INTERMEDIATE"
+	BEGINNER     ArticleTextDifficultyPreset = "BEGINNER"
 )
 
 type ArticleText struct {

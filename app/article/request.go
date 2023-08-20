@@ -35,7 +35,7 @@ type ArticlePaginationDirection string
 
 const (
 	NEXT     ArticlePaginationDirection = "next"
-	PREVIOUS                            = "previous"
+	PREVIOUS ArticlePaginationDirection = "previous"
 )
 
 type createArticleTextReq struct {
