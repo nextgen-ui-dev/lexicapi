@@ -6,14 +6,17 @@ import (
 	"github.com/jellydator/validation"
 	"github.com/jellydator/validation/is"
 	"github.com/oklog/ulid/v2"
+	"gopkg.in/guregu/null.v4"
 )
 
 var (
-	ErrInvalidUserId       = validation.NewError("auth:invalid_user_id", "Invalid user id")
-	ErrUserNameTooLong     = validation.NewError("auth:user_name_too_long", "Name can't be longer than 255 characters")
-	ErrInvalidUserEmail    = validation.NewError("auth:invalid_user_email", "Invalid user email")
-	ErrInvalidUserImageUrl = validation.NewError("auth:invalid_user_image_url", "Invalid user image url")
-	ErrInvalidUserStatus   = validation.NewError("auth:invalid_user_status", "Invalid user status")
+	ErrInvalidUserId             = validation.NewError("auth:invalid_user_id", "Invalid user id")
+	ErrUserNameTooLong           = validation.NewError("auth:user_name_too_long", "Name can't be longer than 255 characters")
+	ErrInvalidUserEmail          = validation.NewError("auth:invalid_user_email", "Invalid user email")
+	ErrInvalidUserImageUrl       = validation.NewError("auth:invalid_user_image_url", "Invalid user image url")
+	ErrInvalidUserStatus         = validation.NewError("auth:invalid_user_status", "Invalid user status")
+	ErrInvalidUserRole           = validation.NewError("auth:invalid_user_role", "Invalid user role")
+	ErrInvalidUserEducationlevel = validation.NewError("auth:invalid_user_education_level", "Invalid user education level")
 )
 
 func validateUserId(idStr string) (id ulid.ULID, err error) {
@@ -64,4 +67,22 @@ func validateUserStatus(status int) (err error) {
 	}
 
 	return nil
+}
+
+func validateUserRole(roleStr null.String) (role UserRole, err error) {
+	switch roleStr.String {
+	case STUDENT.String, EDUCATOR.String, CIVILIAN.String:
+		return UserRole(role), nil
+	}
+
+	return role, ErrInvalidUserRole
+}
+
+func validateUserEducationLevel(levelStr null.String) (level UserEducationLevel, err error) {
+	switch levelStr.String {
+	case SMP.String, SMA.String, SARJANA.String, LAINNYA.String:
+		return UserEducationLevel(levelStr), nil
+	}
+
+	return level, ErrInvalidUserEducationlevel
 }
