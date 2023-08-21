@@ -128,3 +128,12 @@ func signInWithGoogle(ctx context.Context, idToken string) (signIn UserSignIn, e
 		RefreshToken: refreshToken,
 	}, nil, nil
 }
+
+func onboardUser(ctx context.Context, user User, body onboardReq) (User, map[string]error, error) {
+	errs := user.Onboard(body.Role, body.EducationLevel)
+	if errs != nil {
+		return user, errs, nil
+	}
+
+	return user, nil, nil
+}

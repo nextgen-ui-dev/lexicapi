@@ -6,7 +6,6 @@ import (
 	"github.com/jellydator/validation"
 	"github.com/jellydator/validation/is"
 	"github.com/oklog/ulid/v2"
-	"gopkg.in/guregu/null.v4"
 )
 
 var (
@@ -69,20 +68,30 @@ func validateUserStatus(status int) (err error) {
 	return nil
 }
 
-func validateUserRole(roleStr null.String) (role UserRole, err error) {
-	switch roleStr.String {
-	case STUDENT.String.String, EDUCATOR.String.String, CIVILIAN.String.String:
-		return UserRole{roleStr}, nil
+func validateUserRole(roleStr string) (role UserRole, err error) {
+	switch roleStr {
+	case STUDENT.String.String:
+		return STUDENT, nil
+	case EDUCATOR.String.String:
+		return EDUCATOR, nil
+	case CIVILIAN.String.String:
+		return CIVILIAN, nil
+	default:
+		return UserRole{}, ErrInvalidUserRole
 	}
-
-	return role, ErrInvalidUserRole
 }
 
-func validateUserEducationLevel(levelStr null.String) (level UserEducationLevel, err error) {
-	switch levelStr.String {
-	case SMP.String.String, SMA.String.String, SARJANA.String.String, LAINNYA.String.String:
-		return UserEducationLevel{levelStr}, nil
+func validateUserEducationLevel(levelStr string) (level UserEducationLevel, err error) {
+	switch levelStr {
+	case SMP.String.String:
+		return SMP, nil
+	case SMA.String.String:
+		return SMA, nil
+	case SARJANA.String.String:
+		return SARJANA, nil
+	case LAINNYA.String.String:
+		return LAINNYA, nil
+	default:
+		return UserEducationLevel{}, ErrInvalidUserRole
 	}
-
-	return level, ErrInvalidUserEducationlevel
 }

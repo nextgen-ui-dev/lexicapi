@@ -93,12 +93,12 @@ func (u *User) Onboard(roleStr, educationLevelStr string) (errs map[string]error
 		return errs
 	}
 
-	role, err := validateUserRole(null.StringFrom(roleStr))
+	role, err := validateUserRole(roleStr)
 	if err != nil {
 		errs["role"] = err
 	}
 
-	educationLevel, err := validateUserEducationLevel(null.StringFrom(educationLevelStr))
+	educationLevel, err := validateUserEducationLevel(educationLevelStr)
 	if err != nil {
 		errs["education_level"] = err
 	}

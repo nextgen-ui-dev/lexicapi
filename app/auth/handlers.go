@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/lexica-app/lexicapi/app"
@@ -68,6 +69,18 @@ func onboardUserHandler(w http.ResponseWriter, r *http.Request) {
 	user, ok := ctx.Value(UserInfoCtx).(User)
 	if !ok {
 		app.WriteHttpError(w, http.StatusUnauthorized, ErrInvalidAccessToken)
+		return
+	}
+
+	var body onboardReq
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.WriteHttpError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	user, errs, _ := onboardUser(ctx, user, body)
+	if errs != nil {
+		app.WriteHttpErrors(w, http.StatusBadRequest, errs)
 		return
 	}
 
