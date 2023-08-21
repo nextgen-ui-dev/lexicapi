@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
@@ -135,4 +136,70 @@ func saveAccount(ctx context.Context, tx pgx.Tx, account Account) (newAccount Ac
 	}
 
 	return newAccount, nil
+}
+
+func updateUserForOnboarding(ctx context.Context, tx pgx.Tx, user User, interestIds []ulid.ULID) (onboardedUser User, err error) {
+	if _, err = findUserById(ctx, tx, user.Id); err != nil {
+		return
+	}
+
+	q := `
+  UPDATE users
+  SET role = $1, education_level = $2, status = $3, updated_at = $4
+  WHERE id = $5 AND deleted_at IS NULL
+  RETURNING *
+  `
+
+	if err = pgxscan.Get(
+		ctx,
+		tx,
+		&onboardedUser,
+		q,
+		user.Role,
+		user.EducationLevel,
+		user.Status,
+		user.UpdatedAt,
+		user.Id,
+	); err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return User{}, ErrUserDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to update user for onboarding")
+		return
+	}
+
+	q = `
+	UPDATE users_interests
+	SET deleted_at = $2
+	WHERE user_id = $1 AND deleted_at IS NULL
+	`
+
+	_, err = tx.Exec(ctx, q, user.Id, user.UpdatedAt)
+	if err != nil {
+		log.Err(err).Msg("Failed to update user for onboarding")
+		return
+	}
+
+	q = "INSERT INTO users_interests (id, user_id, category_id, created_at) VALUES"
+
+	params := []any{user.Id, user.UpdatedAt}
+	paramCount := 3
+	for i, interestId := range interestIds {
+		q += fmt.Sprintf("\n($%d, $1, $%d, $2)", paramCount, paramCount+1)
+		if i+1 < len(interestIds) {
+			q += ","
+		}
+
+		params = append(params, ulid.Make(), interestId)
+		paramCount += 2
+	}
+
+	_, err = tx.Exec(ctx, q, params...)
+	if err != nil {
+		log.Err(err).Msg("Failed to update user for onboarding")
+		return
+	}
+
+	return onboardedUser, nil
 }

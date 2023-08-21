@@ -9,11 +9,13 @@ import (
 )
 
 var (
-	ErrInvalidUserId       = validation.NewError("auth:invalid_user_id", "Invalid user id")
-	ErrUserNameTooLong     = validation.NewError("auth:user_name_too_long", "Name can't be longer than 255 characters")
-	ErrInvalidUserEmail    = validation.NewError("auth:invalid_user_email", "Invalid user email")
-	ErrInvalidUserImageUrl = validation.NewError("auth:invalid_user_image_url", "Invalid user image url")
-	ErrInvalidUserStatus   = validation.NewError("auth:invalid_user_status", "Invalid user status")
+	ErrInvalidUserId             = validation.NewError("auth:invalid_user_id", "Invalid user id")
+	ErrUserNameTooLong           = validation.NewError("auth:user_name_too_long", "Name can't be longer than 255 characters")
+	ErrInvalidUserEmail          = validation.NewError("auth:invalid_user_email", "Invalid user email")
+	ErrInvalidUserImageUrl       = validation.NewError("auth:invalid_user_image_url", "Invalid user image url")
+	ErrInvalidUserStatus         = validation.NewError("auth:invalid_user_status", "Invalid user status")
+	ErrInvalidUserRole           = validation.NewError("auth:invalid_user_role", "Invalid user role")
+	ErrInvalidUserEducationlevel = validation.NewError("auth:invalid_user_education_level", "Invalid user education level")
 )
 
 func validateUserId(idStr string) (id ulid.ULID, err error) {
@@ -64,4 +66,32 @@ func validateUserStatus(status int) (err error) {
 	}
 
 	return nil
+}
+
+func validateUserRole(roleStr string) (role UserRole, err error) {
+	switch roleStr {
+	case STUDENT.String.String:
+		return STUDENT, nil
+	case EDUCATOR.String.String:
+		return EDUCATOR, nil
+	case CIVILIAN.String.String:
+		return CIVILIAN, nil
+	default:
+		return UserRole{}, ErrInvalidUserRole
+	}
+}
+
+func validateUserEducationLevel(levelStr string) (level UserEducationLevel, err error) {
+	switch levelStr {
+	case SMP.String.String:
+		return SMP, nil
+	case SMA.String.String:
+		return SMA, nil
+	case SARJANA.String.String:
+		return SARJANA, nil
+	case LAINNYA.String.String:
+		return LAINNYA, nil
+	default:
+		return UserEducationLevel{}, ErrInvalidUserRole
+	}
 }
