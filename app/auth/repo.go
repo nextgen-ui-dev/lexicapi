@@ -136,3 +136,37 @@ func saveAccount(ctx context.Context, tx pgx.Tx, account Account) (newAccount Ac
 
 	return newAccount, nil
 }
+
+func updateUserForOnboarding(ctx context.Context, tx pgx.Tx, user User, interests []ulid.ULID) (onboardedUser User, err error) {
+	if _, err = findUserById(ctx, tx, user.Id); err != nil {
+		return
+	}
+
+	q := `
+  UPDATE users
+  SET role = $1, education_level = $2, status = $3, updated_at = $4
+  WHERE id = $5 AND deleted_at IS NULL
+  RETURNING *
+  `
+
+	if err = pgxscan.Get(
+		ctx,
+		tx,
+		&onboardedUser,
+		q,
+		user.Role,
+		user.EducationLevel,
+		user.Status,
+		user.UpdatedAt,
+		user.Id,
+	); err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return User{}, ErrUserDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to update user for onboarding")
+		return
+	}
+
+	return onboardedUser, nil
+}

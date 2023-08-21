@@ -60,7 +60,7 @@ func signInWithGoogle(ctx context.Context, idToken string) (signIn UserSignIn, e
 			return
 		}
 
-		account, err = findAccountByProviderAndProviderAccountId(ctx, tx, GOOGLE, accountId)
+		_, err = findAccountByProviderAndProviderAccountId(ctx, tx, GOOGLE, accountId)
 		if err != nil {
 			if err != ErrAccountDoesNotExist {
 				return
@@ -77,13 +77,13 @@ func signInWithGoogle(ctx context.Context, idToken string) (signIn UserSignIn, e
 				return
 			}
 
-			account, err = saveAccount(ctx, tx, account)
+			_, err = saveAccount(ctx, tx, account)
 			if err != nil {
 				return
 			}
 		}
 	} else {
-		account, err = findAccountByProviderAndProviderAccountId(ctx, tx, GOOGLE, accountId)
+		_, err = findAccountByProviderAndProviderAccountId(ctx, tx, GOOGLE, accountId)
 		if err != nil {
 			if err != ErrAccountDoesNotExist {
 				return
@@ -100,7 +100,7 @@ func signInWithGoogle(ctx context.Context, idToken string) (signIn UserSignIn, e
 				return
 			}
 
-			account, err = saveAccount(ctx, tx, account)
+			_, err = saveAccount(ctx, tx, account)
 			if err != nil {
 				return
 			}
@@ -132,7 +132,25 @@ func signInWithGoogle(ctx context.Context, idToken string) (signIn UserSignIn, e
 func onboardUser(ctx context.Context, user User, body onboardReq) (User, map[string]error, error) {
 	errs := user.Onboard(body.Role, body.EducationLevel)
 	if errs != nil {
-		return user, errs, nil
+		return User{}, errs, nil
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to onboard user")
+		return User{}, nil, err
+	}
+
+	defer tx.Rollback(ctx)
+
+	user, err = updateUserForOnboarding(ctx, tx, user, body.InterestIds)
+	if err != nil {
+		return User{}, nil, err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to onboard user")
+		return User{}, nil, err
 	}
 
 	return user, nil, nil
