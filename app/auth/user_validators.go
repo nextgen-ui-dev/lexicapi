@@ -71,8 +71,8 @@ func validateUserStatus(status int) (err error) {
 
 func validateUserRole(roleStr null.String) (role UserRole, err error) {
 	switch roleStr.String {
-	case STUDENT.String, EDUCATOR.String, CIVILIAN.String:
-		return UserRole(role), nil
+	case STUDENT.String.String, EDUCATOR.String.String, CIVILIAN.String.String:
+		return UserRole{roleStr}, nil
 	}
 
 	return role, ErrInvalidUserRole
@@ -80,8 +80,8 @@ func validateUserRole(roleStr null.String) (role UserRole, err error) {
 
 func validateUserEducationLevel(levelStr null.String) (level UserEducationLevel, err error) {
 	switch levelStr.String {
-	case SMP.String, SMA.String, SARJANA.String, LAINNYA.String:
-		return UserEducationLevel(levelStr), nil
+	case SMP.String.String, SMA.String.String, SARJANA.String.String, LAINNYA.String.String:
+		return UserEducationLevel{levelStr}, nil
 	}
 
 	return level, ErrInvalidUserEducationlevel

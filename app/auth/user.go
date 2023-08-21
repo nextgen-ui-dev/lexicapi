@@ -13,8 +13,13 @@ var (
 )
 
 type UserStatus uint
-type UserRole null.String
-type UserEducationLevel null.String
+type UserRole struct {
+	null.String
+}
+
+type UserEducationLevel struct {
+	null.String
+}
 
 const (
 	NOT_VERIFIED UserStatus = iota
@@ -23,16 +28,16 @@ const (
 )
 
 var (
-	STUDENT  = UserRole(null.StringFrom("pelajar"))
-	EDUCATOR = UserRole(null.StringFrom("pengajar"))
-	CIVILIAN = UserRole(null.StringFrom("umum"))
+	STUDENT  = UserRole{null.StringFrom("pelajar")}
+	EDUCATOR = UserRole{null.StringFrom("pengajar")}
+	CIVILIAN = UserRole{null.StringFrom("umum")}
 )
 
 var (
-	SMP     UserEducationLevel = UserEducationLevel(null.StringFrom("smp"))
-	SMA     UserEducationLevel = UserEducationLevel(null.StringFrom("sma"))
-	SARJANA UserEducationLevel = UserEducationLevel(null.StringFrom("sarjana"))
-	LAINNYA UserEducationLevel = UserEducationLevel(null.StringFrom("lainnya"))
+	SMP     = UserEducationLevel{null.StringFrom("smp")}
+	SMA     = UserEducationLevel{null.StringFrom("sma")}
+	SARJANA = UserEducationLevel{null.StringFrom("sarjana")}
+	LAINNYA = UserEducationLevel{null.StringFrom("lainnya")}
 )
 
 type User struct {
