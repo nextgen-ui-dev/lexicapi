@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS users_interests (
     id BYTEA NOT NULL,
     user_id BYTEA NOT NULL,
     category_id BYTEA NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     deleted_at TIMESTAMPTZ,
     PRIMARY KEY(id),
     CONSTRAINT users_interests_unique UNIQUE NULLS NOT DISTINCT (user_id, category_id, deleted_at)
