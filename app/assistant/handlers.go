@@ -6,10 +6,17 @@ import (
 	"net/http"
 
 	"github.com/lexica-app/lexicapi/app"
+	"github.com/lexica-app/lexicapi/app/auth"
 )
 
 func simplifyTextHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	_, ok := ctx.Value(auth.UserInfoCtx).(auth.User)
+	if !ok {
+		app.WriteHttpError(w, http.StatusUnauthorized, auth.ErrInvalidAccessToken)
+		return
+	}
 
 	var body SimplifyTextReq
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
@@ -43,6 +50,12 @@ func simplifyTextHandler(w http.ResponseWriter, r *http.Request) {
 
 func explainTextHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+
+	_, ok := ctx.Value(auth.UserInfoCtx).(auth.User)
+	if !ok {
+		app.WriteHttpError(w, http.StatusUnauthorized, auth.ErrInvalidAccessToken)
+		return
+	}
 
 	var body ExplainTextReq
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
