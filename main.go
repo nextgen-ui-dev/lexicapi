@@ -11,6 +11,7 @@ import (
 	"github.com/lexica-app/lexicapi/app/article"
 	"github.com/lexica-app/lexicapi/app/assistant"
 	"github.com/lexica-app/lexicapi/app/auth"
+	"github.com/lexica-app/lexicapi/app/friend"
 	"github.com/lexica-app/lexicapi/db"
 	"github.com/rs/zerolog/log"
 )
@@ -44,6 +45,8 @@ func main() {
 		config.LexicaJwtRefreshTokenSecret,
 	)
 	auth.ConfigureSuperadmin(config.LexicaSuperadminEmail, config.LexicaSuperadminPassword)
+
+	friend.SetPool(pool)
 
 	r := chi.NewRouter()
 
