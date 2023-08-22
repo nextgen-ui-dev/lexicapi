@@ -25,8 +25,10 @@ func sendFriendRequestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		switch err {
-		case ErrCantSendFriendRequestToSelf:
+		case ErrCantSendFriendRequestToSelf, ErrAlreadyFriends, ErrFriendRequestAlreadyExist:
 			app.WriteHttpError(w, http.StatusBadRequest, err)
+		default:
+			app.WriteHttpInternalServerError(w)
 		}
 
 		return
