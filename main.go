@@ -72,6 +72,7 @@ func main() {
 		r.Mount("/auth", auth.Router())
 		r.Mount("/article", article.Router())
 		r.Mount("/assistant", assistant.Router())
+		r.Mount("/friend", friend.Router())
 	})
 
 	log.Info().Msgf("Running server on port %s in %s mode...", config.Port, config.Env)
