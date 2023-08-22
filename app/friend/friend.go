@@ -9,7 +9,9 @@ import (
 )
 
 var (
-	ErrCantSendFriendRequestToSelf = errors.New("can't send a friend request to yourself")
+	ErrCantSendFriendRequestToSelf  = errors.New("can't send a friend request to yourself")
+	ErrFriendRequestAlreadyRejected = errors.New("friend request already rejected")
+	ErrFriendRequestAlreadyAccepted = errors.New("friend request already accepted")
 )
 
 type FriendStatus string
@@ -58,4 +60,16 @@ func NewFriendRequest(requesterIdStr, requesteeIdStr string) (Friend, map[string
 		Status:      PENDING,
 		CreatedAt:   time.Now(),
 	}, nil, nil
+}
+
+func (f *Friend) AcceptFriendRequest() (err error) {
+	if f.Status == REJECTED {
+		return ErrFriendRequestAlreadyRejected
+	} else if f.Status == FRIENDED {
+		return ErrFriendRequestAlreadyAccepted
+	}
+
+	f.Status = FRIENDED
+
+	return nil
 }
