@@ -115,9 +115,11 @@ func findFriendsByUserId(ctx context.Context, tx pgx.Tx, userId ulid.ULID) (frie
 	  FROM (
 	    SELECT fr.*
 	    FROM friends fr
-	    INNER JOIN users u
-	    ON u.id = fr.requester_id
-	    WHERE
+	    WHERE EXISTS (
+		  SELECT u.id
+		  FROM users u
+		  WHERE u.id = fr.requester_id
+		) AND
 		  fr.requester_id = $1 AND
 		  fr.status = 'friended' AND
 		  fr.deleted_at IS NULL
@@ -129,9 +131,11 @@ func findFriendsByUserId(ctx context.Context, tx pgx.Tx, userId ulid.ULID) (frie
 	  FROM (
 	    SELECT fr.*
 	    FROM friends fr
-	    INNER JOIN users u
-	    ON u.id = fr.requestee_id
-	    WHERE
+		WHERE EXISTS (
+		  SELECT u.id
+		  FROM users u
+		  WHERE u.id = fr.requestee_id
+		) AND
 		  fr.requestee_id = $1 AND
 		  fr.status = 'friended' AND
 		  fr.deleted_at IS NULL
