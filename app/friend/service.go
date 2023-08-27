@@ -131,7 +131,7 @@ func rejectFriendRequest(ctx context.Context, requesteeIdStr, friendIdStr string
 	return friend, nil
 }
 
-func Unfriend(ctx context.Context, userIdStr, friendIdStr string) (friend Friend, err error) {
+func unfriend(ctx context.Context, userIdStr, friendIdStr string) (friend Friend, err error) {
 	userId, err := validateRequesteeId(userIdStr)
 	if err != nil {
 		return
