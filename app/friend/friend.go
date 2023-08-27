@@ -13,6 +13,7 @@ var (
 	ErrFriendRequestAlreadyRejected            = errors.New("friend request already rejected")
 	ErrFriendRequestAlreadyAccepted            = errors.New("friend request already accepted")
 	ErrCantAcceptFriendRequestOfOtherRequestee = errors.New("can't accept a friend request that belongs to other requestee")
+	ErrCantRejectFriendRequestOfOtherRequestee = errors.New("can't reject a friend request that belongs to other requestee")
 )
 
 type FriendStatus string
@@ -87,7 +88,7 @@ func (f *Friend) RejectFriendRequest(requesteeId ulid.ULID) (err error) {
 	}
 
 	if f.RequesteeId.Compare(requesteeId) != 0 {
-		return ErrCantAcceptFriendRequestOfOtherRequestee
+		return ErrCantRejectFriendRequestOfOtherRequestee
 	}
 
 	f.Status = REJECTED

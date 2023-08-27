@@ -70,3 +70,36 @@ func acceptFriendRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.WriteHttpBodyJson(w, http.StatusOK, friend)
 }
+
+func rejectFriendRequestHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	requestee, ok := ctx.Value(auth.UserInfoCtx).(auth.User)
+	if !ok {
+		app.WriteHttpError(w, http.StatusUnauthorized, auth.ErrInvalidAccessToken)
+		return
+	}
+
+	friendId := chi.URLParam(r, "friendId")
+
+	friend, err := rejectFriendRequest(ctx, requestee.Id.String(), friendId)
+	if err != nil {
+		switch {
+		case
+			errors.As(err, &ErrInvalidFriendId),
+			errors.As(err, &ErrInvalidRequesteeId),
+			errors.Is(err, ErrFriendRequestAlreadyAccepted),
+			errors.Is(err, ErrFriendRequestAlreadyRejected),
+			errors.Is(err, ErrCantRejectFriendRequestOfOtherRequestee):
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case errors.Is(err, ErrFriendDoesNotExist):
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, friend)
+}

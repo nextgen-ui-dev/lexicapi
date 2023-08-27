@@ -12,6 +12,7 @@ func Router() *chi.Mux {
 
 	r.Post("/{requesteeId}/add", sendFriendRequestHandler)
 	r.Patch("/{friendId}/accept", acceptFriendRequestHandler)
+	r.Delete("/{friendId}/reject", rejectFriendRequestHandler)
 
 	return r
 }
