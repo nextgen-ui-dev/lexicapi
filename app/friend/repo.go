@@ -17,6 +17,21 @@ var (
 	ErrAlreadyFriends            = errors.New("requester and requestee are already friends")
 )
 
+func findFriendById(ctx context.Context, tx pgx.Tx, friendId ulid.ULID) (friend Friend, err error) {
+	q := "SELECT * FROM friends WHERE id = $1 AND deleted_at IS NULL"
+
+	if err = pgxscan.Get(ctx, tx, &friend, q, friendId); err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return Friend{}, ErrFriendDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to find friend by id")
+		return
+	}
+
+	return friend, nil
+}
+
 func findPendingOrFriendedFriendByUserIds(ctx context.Context, tx pgx.Tx, firstUserId ulid.ULID, secondUserId ulid.ULID) (friend Friend, err error) {
 	q := `
 	SELECT *
@@ -71,4 +86,23 @@ func createFriend(ctx context.Context, tx pgx.Tx, friend Friend) (newFriend Frie
 	}
 
 	return newFriend, nil
+}
+
+func updateFriend(ctx context.Context, tx pgx.Tx, friend Friend) (Friend, error) {
+	q := `
+	UPDATE friends
+	SET status = $2
+	WHERE id = $1 AND deleted_at IS NULL
+	RETURNING *`
+	
+	if err := pgxscan.Get(ctx, tx, &friend, q, friend.Id, friend.Status); err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return friend, ErrFriendDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to update friend")
+		return friend, err
+	}
+
+	return friend, nil
 }

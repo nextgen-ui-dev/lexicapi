@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   db:
-    image: postgres:latest
+    image: postgres:15
     container_name: lexicadb
     deploy:
       restart_policy:
