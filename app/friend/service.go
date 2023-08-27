@@ -89,3 +89,44 @@ func acceptFriendRequest(ctx context.Context, requesteeIdStr, friendIdStr string
 
 	return friend, nil
 }
+
+func rejectFriendRequest(ctx context.Context, requesteeIdStr, friendIdStr string) (friend Friend, err error) {
+	requesteeId, err := validateRequesteeId(requesteeIdStr)
+	if err != nil {
+		return
+	}
+
+	friendId, err := validateFriendId(friendIdStr)
+	if err != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to reject friend request")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	friend, err = findFriendById(ctx, tx, friendId)
+	if err != nil {
+		return
+	}
+
+	if err = friend.RejectFriendRequest(requesteeId); err != nil {
+		return
+	}
+
+	friend, err = updateFriend(ctx, tx, friend)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to reject friend request")
+		return
+	}
+
+	return friend, nil
+}
