@@ -136,3 +136,24 @@ func unfriendHandler(w http.ResponseWriter, r *http.Request) {
 
 	app.WriteHttpBodyJson(w, http.StatusOK, friend)
 }
+
+func getFriendsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user, ok := ctx.Value(auth.UserInfoCtx).(auth.User)
+	if !ok {
+		app.WriteHttpError(w, http.StatusUnauthorized, auth.ErrInvalidAccessToken)
+		return
+	}
+	
+	friends, err := getFriends(ctx, user.Id)
+	if err != nil {
+		switch err {
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, friends)
+}

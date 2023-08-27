@@ -3,6 +3,7 @@ package friend
 import (
 	"context"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 )
 
@@ -170,4 +171,26 @@ func unfriend(ctx context.Context, userIdStr, friendIdStr string) (friend Friend
 	}
 
 	return friend, nil
+}
+
+func getFriends(ctx context.Context, userId ulid.ULID) (friends []*FriendDetail, err error) {
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to get friends")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	friends, err = findFriendsByUserId(ctx, tx, userId)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to get friends")
+		return
+	}
+
+	return friends, nil
 }

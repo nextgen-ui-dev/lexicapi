@@ -106,3 +106,51 @@ func updateFriend(ctx context.Context, tx pgx.Tx, friend Friend) (Friend, error)
 
 	return friend, nil
 }
+
+func findFriendsByUserId(ctx context.Context, tx pgx.Tx, userId ulid.ULID) (friends []*FriendDetail, err error) {
+	q := `
+	SELECT fr.*
+	FROM (
+	  SELECT fr1.*, u.name, u.email, u.image_url
+	  FROM (
+	    SELECT fr.*
+	    FROM friends fr
+	    WHERE EXISTS (
+		  SELECT u.id
+		  FROM users u
+		  WHERE u.id = fr.requester_id
+		) AND
+		  fr.requester_id = $1 AND
+		  fr.status = 'friended' AND
+		  fr.deleted_at IS NULL
+	  ) fr1
+	  INNER JOIN users u
+	  ON u.id = fr1.requestee_id
+	  UNION
+	  SELECT fr2.*, u.name, u.email, u.image_url
+	  FROM (
+	    SELECT fr.*
+	    FROM friends fr
+		WHERE EXISTS (
+		  SELECT u.id
+		  FROM users u
+		  WHERE u.id = fr.requestee_id
+		) AND
+		  fr.requestee_id = $1 AND
+		  fr.status = 'friended' AND
+		  fr.deleted_at IS NULL
+	  ) fr2
+	  INNER JOIN users u
+	  ON u.id = fr2.requester_id
+	) fr
+	ORDER BY fr.name ASC
+	`
+
+	friends = []*FriendDetail{}
+	if err = pgxscan.Select(ctx, tx, &friends, q, userId); err != nil {
+		log.Err(err).Msg("Failed to find friends by user id")
+		return
+	}
+
+	return friends, nil
+}
