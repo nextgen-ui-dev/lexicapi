@@ -11,6 +11,7 @@ func Router() *chi.Mux {
 	r.Use(auth.UserAuthMiddleware)
 
 	r.Post("/{requesteeId}/add", sendFriendRequestHandler)
+	r.Patch("/{friendId}/accept", acceptFriendRequestHandler)
 
 	return r
 }
