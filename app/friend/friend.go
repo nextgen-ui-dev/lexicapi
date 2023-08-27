@@ -10,6 +10,7 @@ import (
 
 var (
 	ErrCantSendFriendRequestToSelf             = errors.New("can't send a friend request to yourself")
+	ErrFriendRequestPending                    = errors.New("friend request is still pending")
 	ErrFriendRequestAlreadyRejected            = errors.New("friend request already rejected")
 	ErrFriendRequestAlreadyAccepted            = errors.New("friend request already accepted")
 	ErrCantAcceptFriendRequestOfOtherRequestee = errors.New("can't accept a friend request that belongs to other requestee")
@@ -101,8 +102,8 @@ func (f *Friend) RejectFriendRequest(requesteeId ulid.ULID) (err error) {
 func (f *Friend) Unfriend(userId ulid.ULID) (err error) {
 	if f.Status == REJECTED && f.DeletedAt.Valid {
 		return ErrFriendRequestAlreadyRejected
-	} else if f.Status == FRIENDED {
-		return ErrFriendRequestAlreadyAccepted
+	} else if f.Status == PENDING {
+		return ErrFriendRequestPending
 	}
 
 	if f.RequesteeId.Compare(userId) != 0 && f.RequesterId.Compare(userId) != 0 {
