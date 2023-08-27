@@ -154,3 +154,32 @@ func findFriendsByUserId(ctx context.Context, tx pgx.Tx, userId ulid.ULID) (frie
 
 	return friends, nil
 }
+
+func findSentFriendRequestsByUserId(ctx context.Context, tx pgx.Tx, userId ulid.ULID) (friends []*FriendDetail, err error) {
+	q := `
+	SELECT fr.*, u.name, u.email, u.image_url
+	FROM (
+	  SELECT fr.*
+	  FROM friends fr
+	  WHERE EXISTS (
+	    SELECT u.id
+	    FROM users u
+	    WHERE u.id = fr.requester_id
+	  ) AND
+	    fr.requester_id = $1 AND
+	    fr.status = 'pending' AND
+	    fr.deleted_at IS NULL
+	) fr
+	INNER JOIN users u
+	ON u.id = fr.requestee_id
+	ORDER BY u.name ASC
+	`
+
+	friends = []*FriendDetail{}
+	if err = pgxscan.Select(ctx, tx, &friends, q, userId); err != nil {
+		log.Err(err).Msg("Failed to find sent friend requests by user id")
+		return
+	}
+
+	return friends, nil
+}
