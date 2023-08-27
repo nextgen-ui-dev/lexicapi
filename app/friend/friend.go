@@ -78,3 +78,20 @@ func (f *Friend) AcceptFriendRequest(requesteeId ulid.ULID) (err error) {
 
 	return nil
 }
+
+func (f *Friend) RejectFriendRequest(requesteeId ulid.ULID) (err error) {
+	if f.Status == REJECTED || f.DeletedAt.Valid {
+		return ErrFriendRequestAlreadyRejected
+	} else if f.Status == FRIENDED {
+		return ErrFriendRequestAlreadyAccepted
+	}
+
+	if f.RequesteeId.Compare(requesteeId) != 0 {
+		return ErrCantAcceptFriendRequestOfOtherRequestee
+	}
+
+	f.Status = REJECTED
+	f.DeletedAt = null.TimeFrom(time.Now())
+
+	return nil
+}
