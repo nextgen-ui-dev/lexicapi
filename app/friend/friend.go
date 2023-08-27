@@ -14,6 +14,7 @@ var (
 	ErrFriendRequestAlreadyAccepted            = errors.New("friend request already accepted")
 	ErrCantAcceptFriendRequestOfOtherRequestee = errors.New("can't accept a friend request that belongs to other requestee")
 	ErrCantRejectFriendRequestOfOtherRequestee = errors.New("can't reject a friend request that belongs to other requestee")
+	ErrCantUnfriendOtherUserFriend             = errors.New("can't unfriend other user's friend")
 )
 
 type FriendStatus string
@@ -92,6 +93,22 @@ func (f *Friend) RejectFriendRequest(requesteeId ulid.ULID) (err error) {
 	}
 
 	f.Status = REJECTED
+	f.DeletedAt = null.TimeFrom(time.Now())
+
+	return nil
+}
+
+func (f *Friend) Unfriend(userId ulid.ULID) (err error) {
+	if f.Status == REJECTED && f.DeletedAt.Valid {
+		return ErrFriendRequestAlreadyRejected
+	} else if f.Status == FRIENDED {
+		return ErrFriendRequestAlreadyAccepted
+	}
+
+	if f.RequesteeId.Compare(userId) != 0 && f.RequesterId.Compare(userId) != 0 {
+		return ErrCantUnfriendOtherUserFriend
+	}
+
 	f.DeletedAt = null.TimeFrom(time.Now())
 
 	return nil
