@@ -77,6 +77,11 @@ func acceptFriendRequest(ctx context.Context, requesteeIdStr, friendIdStr string
 		return
 	}
 
+	friend, err = updateFriend(ctx, tx, friend)
+	if err != nil {
+		return
+	}
+
 	if err = tx.Commit(ctx); err != nil {
 		log.Err(err).Msg("Failed to accept friend request")
 		return

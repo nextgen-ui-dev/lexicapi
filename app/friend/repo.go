@@ -87,3 +87,22 @@ func createFriend(ctx context.Context, tx pgx.Tx, friend Friend) (newFriend Frie
 
 	return newFriend, nil
 }
+
+func updateFriend(ctx context.Context, tx pgx.Tx, friend Friend) (Friend, error) {
+	q := `
+	UPDATE friends
+	SET status = $2
+	WHERE id = $1 AND deleted_at IS NULL
+	RETURNING *`
+	
+	if err := pgxscan.Get(ctx, tx, &friend, q, friend.Id, friend.Status); err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return friend, ErrFriendDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to update friend")
+		return friend, err
+	}
+
+	return friend, nil
+}
