@@ -194,3 +194,25 @@ func getFriends(ctx context.Context, userId ulid.ULID) (friends []*FriendDetail,
 
 	return friends, nil
 }
+
+func getSentFriendRequests(ctx context.Context, userId ulid.ULID) (friends []*FriendDetail, err error) {
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to get sent friend requests")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	friends, err = findSentFriendRequestsByUserId(ctx, tx, userId)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to get sent friend requests")
+		return
+	}
+
+	return friends, nil
+}

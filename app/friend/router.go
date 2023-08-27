@@ -15,6 +15,7 @@ func Router() *chi.Mux {
 	r.Delete("/{friendId}/reject", rejectFriendRequestHandler)
 	r.Delete("/{friendId}/unfriend", unfriendHandler)
 	r.Get("/", getFriendsHandler)
+	r.Get("/sent", getSentFriendRequestsHandler)
 
 	return r
 }
