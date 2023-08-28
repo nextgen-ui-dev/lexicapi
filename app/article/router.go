@@ -44,6 +44,7 @@ func Router() *chi.Mux {
 		r.Use(auth.UserAuthMiddleware)
 
 		r.Post("/collection/new", createCollectionHandler)
+		r.Put("/collection/{collectionId}", updateCollectionHandler)
 	})
 
 

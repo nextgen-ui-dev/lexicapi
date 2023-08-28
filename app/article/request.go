@@ -63,6 +63,11 @@ type regenerateOpenAIArticleTextReq struct {
 }
 
 type createCollectionReq struct {
-	Name string `json:"name"`
+	Name       string `json:"name"`
 	Visibility string `json:"visibility"`
+}
+
+type updateCollectionReq struct {
+	Name       null.String `json:"name"`
+	Visibility null.String `json:"visibility"`
 }

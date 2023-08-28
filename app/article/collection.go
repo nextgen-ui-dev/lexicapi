@@ -1,10 +1,15 @@
 package article
 
 import (
+	"errors"
 	"time"
 
 	"github.com/oklog/ulid/v2"
 	"gopkg.in/guregu/null.v4"
+)
+
+var (
+	ErrNotAllowedToUpdateCollection = errors.New("not allowed to update collection")
 )
 
 type CollectionVisibility struct {
@@ -57,8 +62,12 @@ func NewCollection(creatorIdStr, name, visibilityStr string) (Collection, map[st
 	}, nil
 }
 
-func (c *Collection) Update(name, visibility null.String) (map[string]error) {
+func (c *Collection) Update(creatorId ulid.ULID, name, visibility null.String) (map[string]error, error) {
 	errs := make(map[string]error)
+
+	if c.CreatorId.Compare(creatorId) != 0 {
+		return nil, ErrNotAllowedToUpdateCollection
+	}
 
 	if name.Valid {
 		if err := validateCollectionName(name.String); err != nil {
@@ -78,10 +87,10 @@ func (c *Collection) Update(name, visibility null.String) (map[string]error) {
 	}
 
 	if len(errs) != 0 {
-		return errs
+		return errs, nil
 	}
 
 	c.UpdatedAt = null.TimeFrom(time.Now())
 
-	return nil
+	return nil, nil
 }
