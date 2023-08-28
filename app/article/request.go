@@ -61,3 +61,8 @@ type regenerateOpenAIArticleTextReq struct {
 	Difficulty string `json:"difficulty"`
 	IsAdapted  bool   `json:"is_adapted"`
 }
+
+type createCollectionReq struct {
+	Name string `json:"name"`
+	Visibility string `json:"visibility"`
+}

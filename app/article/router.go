@@ -39,6 +39,13 @@ func Router() *chi.Mux {
 
 	r.Get("/", getArticlesHandler)
 	r.Get("/{id}", getArticleByIdHandler)
+	
+	r.Group(func(r chi.Router) {
+		r.Use(auth.UserAuthMiddleware)
+
+		r.Post("/collection/new", createCollectionHandler)
+	})
+
 
 	return r
 }
