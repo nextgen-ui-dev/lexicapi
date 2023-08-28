@@ -120,8 +120,29 @@ func getOwnCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 		app.WriteHttpError(w, http.StatusUnauthorized, auth.ErrInvalidAccessToken)
 		return
 	}
-	
+
 	collections, err := getOwnCollections(ctx, creator.Id)
+	if err != nil {
+		switch err {
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, collections)
+}
+
+func getPublicCollectionsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	_, ok := ctx.Value(auth.UserInfoCtx).(auth.User)
+	if !ok {
+		app.WriteHttpError(w, http.StatusUnauthorized, auth.ErrInvalidAccessToken)
+		return
+	}
+
+	collections, err := getPublicCollections(ctx)
 	if err != nil {
 		switch err {
 		default:
