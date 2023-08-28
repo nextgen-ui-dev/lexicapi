@@ -10,6 +10,7 @@ import (
 
 var (
 	ErrNotAllowedToUpdateCollection = errors.New("not allowed to update collection")
+	ErrNotAllowedToDeleteCollection = errors.New("not allowed to delete collection")
 )
 
 type CollectionVisibility struct {
@@ -93,4 +94,16 @@ func (c *Collection) Update(creatorId ulid.ULID, name, visibility null.String) (
 	c.UpdatedAt = null.TimeFrom(time.Now())
 
 	return nil, nil
+}
+
+func (c *Collection) Delete(creatorId ulid.ULID) error {
+	if c.CreatorId.Compare(creatorId) != 0 {
+		return ErrNotAllowedToDeleteCollection
+	}
+
+	if !c.DeletedAt.Valid {
+		c.DeletedAt = null.TimeFrom(time.Now())
+	}
+
+	return nil
 }

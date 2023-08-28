@@ -70,6 +70,8 @@ func updateCollectionHandler(w http.ResponseWriter, r *http.Request) {
 			app.WriteHttpError(w, http.StatusBadRequest, err)
 		case errors.Is(err, ErrCollectionDoesNotExist):
 			app.WriteHttpError(w, http.StatusNotFound, err)
+		case errors.Is(err, ErrNotAllowedToUpdateCollection):
+			app.WriteHttpError(w, http.StatusForbidden, err)
 		default:
 			app.WriteHttpInternalServerError(w)
 		}
@@ -78,4 +80,34 @@ func updateCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.WriteHttpBodyJson(w, http.StatusCreated, collection)
+}
+
+func deleteCollectionHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user, ok := ctx.Value(auth.UserInfoCtx).(auth.User)
+	if !ok {
+		app.WriteHttpError(w, http.StatusUnauthorized, auth.ErrInvalidAccessToken)
+		return
+	}
+
+	collectionId := chi.URLParam(r, "collectionId")
+
+	collection, err := deleteCollection(ctx, collectionId, user.Id.String())
+	if err != nil {
+		switch {
+		case errors.As(err, &ErrInvalidCollectionId), errors.As(err, &ErrInvalidCollectionCreatorId):
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case errors.Is(err, ErrCollectionDoesNotExist):
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		case errors.Is(err, ErrNotAllowedToDeleteCollection):
+			app.WriteHttpError(w, http.StatusForbidden, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, collection)
 }

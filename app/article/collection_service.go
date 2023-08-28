@@ -76,3 +76,45 @@ func updateCollection(ctx context.Context, collectionIdStr, creatorIdStr string,
 
 	return collection, nil, nil
 }
+
+func deleteCollection(ctx context.Context, collectionIdStr, creatorIdStr string) (collection Collection, err error) {
+	collectionId, err := validateCollectionId(collectionIdStr)
+	if err != nil {
+		return
+	}
+
+	creatorId, err := validateCollectionCreatorId(creatorIdStr)
+	if err != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to delete collection")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	collection, err = findCollectionById(ctx, tx, collectionId)
+	if err != nil {
+		return
+	}
+
+	if err = collection.Delete(creatorId); err != nil {
+		return
+	}
+
+	// collection, err = updateCollectionEntity(ctx, tx, collection)
+	// if err != nil {
+	// 	return
+	// }
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to delete collection")
+		return
+	}
+
+	return collection, nil
+}
