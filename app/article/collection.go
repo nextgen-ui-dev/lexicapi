@@ -1,18 +1,25 @@
 package article
 
 import (
+	"errors"
 	"time"
 
 	"github.com/oklog/ulid/v2"
 	"gopkg.in/guregu/null.v4"
 )
 
-type CollectionVisibility string
+var (
+	ErrNotAllowedToUpdateCollection = errors.New("not allowed to update collection")
+)
 
-const (
-	PRIVATE CollectionVisibility = "private"
-	SHARED  CollectionVisibility = "shared"
-	PUBLIC  CollectionVisibility = "public"
+type CollectionVisibility struct {
+	null.String
+}
+
+var (
+	PRIVATE CollectionVisibility = CollectionVisibility{null.StringFrom("private")}
+	SHARED  CollectionVisibility = CollectionVisibility{null.StringFrom("shared")}
+	PUBLIC  CollectionVisibility = CollectionVisibility{null.StringFrom("public")}
 )
 
 type Collection struct {
@@ -53,4 +60,37 @@ func NewCollection(creatorIdStr, name, visibilityStr string) (Collection, map[st
 		Visibility: visibility,
 		CreatedAt: time.Now(),
 	}, nil
+}
+
+func (c *Collection) Update(creatorId ulid.ULID, name, visibility null.String) (map[string]error, error) {
+	errs := make(map[string]error)
+
+	if c.CreatorId.Compare(creatorId) != 0 {
+		return nil, ErrNotAllowedToUpdateCollection
+	}
+
+	if name.Valid {
+		if err := validateCollectionName(name.String); err != nil {
+			errs["name"] = err
+		}
+
+		c.Name = name.String
+	}
+
+	if visibility.Valid {
+		visibility, err := validateCollectionVisibility(visibility.String) 
+		if err != nil {
+			errs["visibility"] = err
+		}
+
+		c.Visibility = visibility
+	}
+
+	if len(errs) != 0 {
+		return errs, nil
+	}
+
+	c.UpdatedAt = null.TimeFrom(time.Now())
+
+	return nil, nil
 }
