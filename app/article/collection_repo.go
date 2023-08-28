@@ -137,3 +137,25 @@ func findCollectionsByCreatorId(ctx context.Context, tx pgx.Tx, creatorId ulid.U
 
 	return collections, nil
 }
+
+func findPublicCollections(ctx context.Context, tx pgx.Tx) (collections []*CollectionMetadata, err error) {
+	q := `
+	SELECT c.*, u.name creator_name, COUNT(1) number_of_articles
+	FROM collections c
+	INNER JOIN users u
+	ON u.id = c.creator_id
+	WHERE
+	  c.visibility = 'public' AND
+	  c.deleted_at IS NULL
+	GROUP BY c.id, u.name
+	ORDER BY c.created_at DESC
+	`
+
+	collections = []*CollectionMetadata{}
+	if err = pgxscan.Select(ctx, tx, &collections, q); err != nil {
+		log.Err(err).Msg("Failed to find public collections")
+		return
+	}
+
+	return collections, nil
+}
