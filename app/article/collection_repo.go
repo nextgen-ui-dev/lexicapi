@@ -115,3 +115,25 @@ func deleteCollectionEntity(ctx context.Context, tx pgx.Tx, collection Collectio
 
 	return collection, nil
 }
+
+func findCollectionsByCreatorId(ctx context.Context, tx pgx.Tx, creatorId ulid.ULID) (collections []*CollectionMetadata, err error) {
+	q := `
+	SELECT c.*, u.name creator_name, COUNT(1) number_of_articles
+	FROM collections c
+	INNER JOIN users u
+	ON u.id = c.creator_id
+	WHERE
+	  c.creator_id = $1 AND
+	  c.deleted_at IS NULL
+	GROUP BY c.id, u.name
+	ORDER BY c.created_at DESC
+	`
+
+	collections = []*CollectionMetadata{}
+	if err = pgxscan.Select(ctx, tx, &collections, q, creatorId); err != nil {
+		log.Err(err).Msg("Failed to find collections by creator id")
+		return
+	}
+
+	return collections, nil
+}
