@@ -88,3 +88,30 @@ func updateCollectionEntity(ctx context.Context, tx pgx.Tx, collection Collectio
 
 	return collection, nil
 }
+
+func deleteCollectionEntity(ctx context.Context, tx pgx.Tx, collection Collection) (Collection, error) {
+	q := `
+	UPDATE collections
+	SET deleted_at = $2
+	WHERE id = $1 AND deleted_at IS NULL
+	RETURNING *
+	`
+
+	if err := pgxscan.Get(
+		ctx,
+		tx,
+		&collection,
+		q,
+		collection.Id,
+		collection.DeletedAt,
+	); err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return Collection{}, ErrCollectionDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to delete collection entity")
+		return Collection{}, err
+	}
+
+	return collection, nil
+}
