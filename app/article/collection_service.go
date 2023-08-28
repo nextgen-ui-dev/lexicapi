@@ -20,6 +20,11 @@ func createCollection(ctx context.Context, creatorIdStr string, body createColle
 
 	defer tx.Rollback(ctx)
 
+	collection, err = insertCollection(ctx, tx, collection)
+	if err != nil {
+		return
+	}
+
 	err = tx.Commit(ctx)
 	if err != nil {
 		log.Err(err).Msg("Failed to create collection")
