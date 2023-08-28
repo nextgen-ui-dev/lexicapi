@@ -7,12 +7,14 @@ import (
 	"gopkg.in/guregu/null.v4"
 )
 
-type CollectionVisibility string
+type CollectionVisibility struct {
+	null.String
+}
 
-const (
-	PRIVATE CollectionVisibility = "private"
-	SHARED  CollectionVisibility = "shared"
-	PUBLIC  CollectionVisibility = "public"
+var (
+	PRIVATE CollectionVisibility = CollectionVisibility{null.StringFrom("private")}
+	SHARED  CollectionVisibility = CollectionVisibility{null.StringFrom("shared")}
+	PUBLIC  CollectionVisibility = CollectionVisibility{null.StringFrom("public")}
 )
 
 type Collection struct {
@@ -53,4 +55,33 @@ func NewCollection(creatorIdStr, name, visibilityStr string) (Collection, map[st
 		Visibility: visibility,
 		CreatedAt: time.Now(),
 	}, nil
+}
+
+func (c *Collection) Update(name, visibility null.String) (map[string]error) {
+	errs := make(map[string]error)
+
+	if name.Valid {
+		if err := validateCollectionName(name.String); err != nil {
+			errs["name"] = err
+		}
+
+		c.Name = name.String
+	}
+
+	if visibility.Valid {
+		visibility, err := validateCollectionVisibility(visibility.String) 
+		if err != nil {
+			errs["visibility"] = err
+		}
+
+		c.Visibility = visibility
+	}
+
+	if len(errs) != 0 {
+		return errs
+	}
+
+	c.UpdatedAt = null.TimeFrom(time.Now())
+
+	return nil
 }

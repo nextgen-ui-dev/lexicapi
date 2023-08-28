@@ -44,13 +44,13 @@ func validateCollectionName(name string) (err error) {
 
 func validateCollectionVisibility(visibilityStr string) (visibility CollectionVisibility, err error) {
 	switch visibilityStr {
-	case string(PRIVATE):
+	case PRIVATE.String.String:
 		return PRIVATE, nil
-	case string(SHARED):
+	case SHARED.String.String:
 		return SHARED, nil
-	case string(PUBLIC):
+	case PUBLIC.String.String:
 		return PUBLIC, nil
 	default:
-		return CollectionVisibility(""), ErrInvalidCollectionVisibility
+		return CollectionVisibility{}, ErrInvalidCollectionVisibility
 	}
 }
