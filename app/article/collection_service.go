@@ -3,6 +3,7 @@ package article
 import (
 	"context"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 )
 
@@ -117,4 +118,26 @@ func deleteCollection(ctx context.Context, collectionIdStr, creatorIdStr string)
 	}
 
 	return collection, nil
+}
+
+func getOwnCollections(ctx context.Context, creatorId ulid.ULID) (collections []*CollectionMetadata, err error) {
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to get own collections")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	collections, err = findCollectionsByCreatorId(ctx, tx, creatorId)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to get own collections")
+		return
+	}
+
+	return collections, nil
 }
