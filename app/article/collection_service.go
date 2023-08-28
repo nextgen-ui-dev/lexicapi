@@ -141,3 +141,25 @@ func getOwnCollections(ctx context.Context, creatorId ulid.ULID) (collections []
 
 	return collections, nil
 }
+
+func getPublicCollections(ctx context.Context) (collections []*CollectionMetadata, err error) {
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to get public collections")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	collections, err = findPublicCollections(ctx, tx)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to get public collections")
+		return
+	}
+
+	return collections, nil
+}

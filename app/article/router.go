@@ -48,6 +48,7 @@ func Router() *chi.Mux {
 		r.Delete("/collection/{collectionId}", deleteCollectionHandler)
 
 		r.Get("/collection/own", getOwnCollectionsHandler)
+		r.Get("/collection/public", getPublicCollectionsHandler)
 	})
 
 	return r
