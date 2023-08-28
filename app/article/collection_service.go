@@ -105,10 +105,10 @@ func deleteCollection(ctx context.Context, collectionIdStr, creatorIdStr string)
 		return
 	}
 
-	// collection, err = updateCollectionEntity(ctx, tx, collection)
-	// if err != nil {
-	// 	return
-	// }
+	collection, err = deleteCollectionEntity(ctx, tx, collection)
+	if err != nil {
+		return
+	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
