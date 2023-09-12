@@ -112,6 +112,34 @@ func deleteCollectionHandler(w http.ResponseWriter, r *http.Request) {
 	app.WriteHttpBodyJson(w, http.StatusOK, collection)
 }
 
+func getCollectionDetailHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	user, ok := ctx.Value(auth.UserInfoCtx).(auth.User)
+	if !ok {
+		app.WriteHttpError(w, http.StatusUnauthorized, auth.ErrInvalidAccessToken)
+		return
+	}
+
+	collectionId := chi.URLParam(r, "collectionId")
+
+	collection, err := getCollectionDetail(ctx, collectionId, user.Id)
+	if err != nil {
+		switch {
+		case errors.As(err, &ErrInvalidCollectionId):
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case errors.Is(err, ErrCollectionDoesNotExist):
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, collection)
+}
+
 func getOwnCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
