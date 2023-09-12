@@ -1,6 +1,9 @@
 package article
 
-import "gopkg.in/guregu/null.v4"
+import (
+	"github.com/oklog/ulid/v2"
+	"gopkg.in/guregu/null.v4"
+)
 
 type createArticleCategoryReq struct {
 	Name string `json:"name"`
@@ -70,4 +73,8 @@ type createCollectionReq struct {
 type updateCollectionReq struct {
 	Name       null.String `json:"name"`
 	Visibility null.String `json:"visibility"`
+}
+
+type addArticleToCollectionsReq struct {
+	CollectionIds []ulid.ULID `json:"collection_ids"`
 }

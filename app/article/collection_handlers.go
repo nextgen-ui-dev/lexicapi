@@ -149,6 +149,41 @@ func getAddedCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.As(err, &ErrInvalidArticleId):
 			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case errors.Is(err, ErrArticleDoesNotExist):
+			app.WriteHttpError(w, http.StatusNotFound, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, collections)
+}
+
+func addArticleToCollectionsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	creator, ok := ctx.Value(auth.UserInfoCtx).(auth.User)
+	if !ok {
+		app.WriteHttpError(w, http.StatusUnauthorized, auth.ErrInvalidAccessToken)
+		return
+	}
+
+	articleId := chi.URLParam(r, "articleId")
+
+	var body addArticleToCollectionsReq
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		app.WriteHttpError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	collections, err := addArticleToCollections(ctx, creator.Id, articleId, body.CollectionIds)
+	if err != nil {
+		switch {
+		case errors.As(err, &ErrInvalidArticleId):
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		case errors.Is(err, ErrArticleDoesNotExist):
+			app.WriteHttpError(w, http.StatusNotFound, err)
 		default:
 			app.WriteHttpInternalServerError(w)
 		}

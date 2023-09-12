@@ -3,6 +3,8 @@ package article
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
@@ -139,6 +141,10 @@ func findCollectionsByCreatorId(ctx context.Context, tx pgx.Tx, creatorId ulid.U
 }
 
 func findAddedCollectionsByArticleIdAndCreatorId(ctx context.Context, tx pgx.Tx, articleId, creatorId ulid.ULID) (collections []*Collection, err error) {
+	if _, err := findArticleById(ctx, tx, articleId); err != nil {
+		return collections, err
+	}
+
 	q := `
 	SELECT c.*
 	FROM collections c
@@ -153,7 +159,8 @@ func findAddedCollectionsByArticleIdAndCreatorId(ctx context.Context, tx pgx.Tx,
 		  a.id = ca.article_id AND
 		  a.deleted_at IS NULL
 	  ) AND
-	    c.id = ca.collection_id
+	    c.id = ca.collection_id AND
+		ca.deleted_at IS NULL
 	) AND EXISTS (
 	  SELECT u.id
 	  FROM users u
@@ -169,6 +176,61 @@ func findAddedCollectionsByArticleIdAndCreatorId(ctx context.Context, tx pgx.Tx,
 	collections = []*Collection{}
 	if err = pgxscan.Select(ctx, tx, &collections, q, creatorId, articleId); err != nil {
 		log.Err(err).Msg("Failed to find added collections by article id and creator id")
+		return
+	}
+
+	return collections, nil
+}
+
+func createCollectionArticles(ctx context.Context, tx pgx.Tx, articleId, creatorId ulid.ULID, collectionIds []ulid.ULID) (collections []*Collection, err error) {
+	if _, err := findArticleById(ctx, tx, articleId); err != nil {
+		return collections, err
+	}
+
+	q := `
+	UPDATE collection_articles ca
+	SET deleted_at = $3
+	FROM collections c, users u
+	WHERE 
+	  ca.collection_id = c.id AND
+	  ca.article_id = $1 AND
+	  c.creator_id = u.id AND
+	  u.id = $2 AND
+	  ca.deleted_at IS NULL
+	`
+
+	now := time.Now()
+
+	if _, err = tx.Exec(ctx, q, articleId, creatorId, now); err != nil {
+		log.Err(err).Msg("Failed to create collection articles")
+		return
+	}
+
+	if len(collectionIds) > 0 {
+		q = "INSERT INTO collection_articles (id, collection_id, article_id, created_at) VALUES"
+
+		params := []any{articleId, now}
+		paramCount := 3
+		for i, collectionId := range collectionIds {
+			q += fmt.Sprintf("\n($%d, $%d, $1, $2)", paramCount, paramCount+1)
+			if i+1 < len(collectionIds) {
+				q += ","
+			}
+
+			params = append(params, ulid.Make(), collectionId)
+			paramCount += 2
+		}
+
+		q += "\nON CONFLICT DO NOTHING"
+
+		if _, err = tx.Exec(ctx, q, params...); err != nil {
+			log.Err(err).Msg("Failed to create collection articles")
+			return
+		}
+	}
+
+	collections, err = findAddedCollectionsByArticleIdAndCreatorId(ctx, tx, articleId, creatorId)
+	if err != nil {
 		return
 	}
 
