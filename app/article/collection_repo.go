@@ -78,13 +78,12 @@ func findCollectionDetail(ctx context.Context, tx pgx.Tx, collectionId, userId u
 	FROM collections c
 	INNER JOIN users u
 	ON u.id = c.creator_id
-	INNER JOIN collection_articles ca
-	ON ca.collection_id = c.id
+	LEFT JOIN collection_articles ca
+	ON ca.collection_id = c.id AND (ca.id IS NULL OR ca.deleted_at IS NULL)
 	WHERE
 	  c.id = $1 AND
 	  c.creator_id = $2 AND
-	  c.deleted_at IS NULL AND
-	  ca.deleted_at IS NULL
+	  c.deleted_at IS NULL
 	GROUP BY c.id, u.name
 	ORDER BY c.created_at DESC
 	`
@@ -122,7 +121,7 @@ func findCollectionDetail(ctx context.Context, tx pgx.Tx, collectionId, userId u
 	  ca.deleted_at IS NULL
 	`
 
-	var articles []*ArticleViewModel
+	articles := []*ArticleViewModel{}
 	if err = pgxscan.Select(ctx, tx, &articles, q, collectionId); err != nil {
 		log.Err(err).Msg("Failed to find collection detail")
 		return
@@ -198,12 +197,11 @@ func findCollectionsByCreatorId(ctx context.Context, tx pgx.Tx, creatorId ulid.U
 	FROM collections c
 	INNER JOIN users u
 	ON u.id = c.creator_id
-	INNER JOIN collection_articles ca
-	ON ca.collection_id = c.id
+	LEFT JOIN collection_articles ca
+	ON ca.collection_id = c.id AND (ca.id IS NULL OR ca.deleted_at IS NULL)
 	WHERE
 	  c.creator_id = $1 AND
-	  c.deleted_at IS NULL AND
-	  ca.deleted_at IS NULL
+	  c.deleted_at IS NULL
 	GROUP BY c.id, u.name
 	ORDER BY c.created_at DESC
 	`
