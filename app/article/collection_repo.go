@@ -62,6 +62,80 @@ func insertCollection(ctx context.Context, tx pgx.Tx, collection Collection) (ne
 	return newCollection, nil
 }
 
+func findCollectionDetail(ctx context.Context, tx pgx.Tx, collectionId, userId ulid.ULID) (detail CollectionDetail, err error) {
+	collection, err := findCollectionById(ctx, tx, collectionId)
+	if err != nil {
+		return
+	}
+
+	//TODO: handle for shared users when implemented
+	if collection.CreatorId.Compare(userId) != 0 {
+		return detail, ErrCollectionDoesNotExist
+	}
+
+	q := `
+	SELECT c.*, u.name creator_name, COUNT(ca.id) number_of_articles
+	FROM collections c
+	INNER JOIN users u
+	ON u.id = c.creator_id
+	INNER JOIN collection_articles ca
+	ON ca.collection_id = c.id
+	WHERE
+	  c.id = $1 AND
+	  c.creator_id = $2 AND
+	  c.deleted_at IS NULL AND
+	  ca.deleted_at IS NULL
+	GROUP BY c.id, u.name
+	ORDER BY c.created_at DESC
+	`
+
+	var metadata CollectionMetadata
+	if err = pgxscan.Get(ctx, tx, &metadata, q, collectionId, userId); err != nil {
+		if err.Error() == "scanning one: no rows in result set" {
+			return detail, ErrCollectionDoesNotExist
+		}
+
+		log.Err(err).Msg("Failed to find collection detail")
+		return detail, err
+	}
+
+	q = `
+	SELECT
+	  a.*,
+	  (CASE WHEN ac.deleted_at IS NULL THEN ac.name ELSE 'Deleted Category' END) category_name,
+	  (CASE WHEN LENGTH(at.content) >= 255 THEN SUBSTRING(at.content, 1, 255) || '...' ELSE at.content END) teaser
+	FROM articles a
+	INNER JOIN article_categories ac
+	ON a.category_id = ac.id
+	INNER JOIN article_texts at
+	ON a.id = at.article_id
+	INNER JOIN collection_articles ca
+	ON ca.article_id = a.id
+	INNER JOIN collections c
+	ON c.id = ca.collection_id
+	WHERE
+	  a.is_published = TRUE AND
+	  a.deleted_at IS NULL AND
+	  at.difficulty = 'ADVANCED' AND
+	  at.deleted_at IS NULL AND
+	  c.id = $1 AND
+	  ca.deleted_at IS NULL
+	`
+
+	var articles []*ArticleViewModel
+	if err = pgxscan.Select(ctx, tx, &articles, q, collectionId); err != nil {
+		log.Err(err).Msg("Failed to find collection detail")
+		return
+	}
+
+	detail = CollectionDetail{
+		CollectionMetadata: metadata,
+		Articles: articles,
+	}
+
+	return detail, nil
+}
+
 func updateCollectionEntity(ctx context.Context, tx pgx.Tx, collection Collection) (Collection, error) {
 	q := `
 	UPDATE collections
@@ -120,13 +194,16 @@ func deleteCollectionEntity(ctx context.Context, tx pgx.Tx, collection Collectio
 
 func findCollectionsByCreatorId(ctx context.Context, tx pgx.Tx, creatorId ulid.ULID) (collections []*CollectionMetadata, err error) {
 	q := `
-	SELECT c.*, u.name creator_name, COUNT(1) number_of_articles
+	SELECT c.*, u.name creator_name, COUNT(ca.id) number_of_articles
 	FROM collections c
 	INNER JOIN users u
 	ON u.id = c.creator_id
+	INNER JOIN collection_articles ca
+	ON ca.collection_id = c.id
 	WHERE
 	  c.creator_id = $1 AND
-	  c.deleted_at IS NULL
+	  c.deleted_at IS NULL AND
+	  ca.deleted_at IS NULL
 	GROUP BY c.id, u.name
 	ORDER BY c.created_at DESC
 	`

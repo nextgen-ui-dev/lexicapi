@@ -35,6 +35,33 @@ func createCollection(ctx context.Context, creatorIdStr string, body createColle
 	return collection, nil, nil
 }
 
+func getCollectionDetail(ctx context.Context, collectionIdStr string, userId ulid.ULID) (detail CollectionDetail, err error) {
+	collectionId, err := validateCollectionId(collectionIdStr)
+	if err != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to get collection detail")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	detail, err = findCollectionDetail(ctx, tx, collectionId, userId)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to get collection detail")
+		return
+	}
+
+	return detail, nil
+}
+
 func updateCollection(ctx context.Context, collectionIdStr, creatorIdStr string, body updateCollectionReq) (collection Collection, errs map[string]error, err error) {
 	collectionId, err := validateCollectionId(collectionIdStr)
 	if err != nil {

@@ -47,6 +47,7 @@ func Router() *chi.Mux {
 		r.Post("/{articleId}/collection", addArticleToCollectionsHandler)
 
 		r.Post("/collection/new", createCollectionHandler)
+		r.Get("/collection/{collectionId}", getCollectionDetailHandler)
 		r.Put("/collection/{collectionId}", updateCollectionHandler)
 		r.Delete("/collection/{collectionId}", deleteCollectionHandler)
 
