@@ -133,6 +133,31 @@ func getOwnCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 	app.WriteHttpBodyJson(w, http.StatusOK, collections)
 }
 
+func getAddedCollectionsHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	creator, ok := ctx.Value(auth.UserInfoCtx).(auth.User)
+	if !ok {
+		app.WriteHttpError(w, http.StatusUnauthorized, auth.ErrInvalidAccessToken)
+		return
+	}
+
+	articleId := chi.URLParam(r, "articleId")
+
+	collections, err := getAddedCollections(ctx, creator.Id, articleId)
+	if err != nil {
+		switch {
+		case errors.As(err, &ErrInvalidArticleId):
+			app.WriteHttpError(w, http.StatusBadRequest, err)
+		default:
+			app.WriteHttpInternalServerError(w)
+		}
+		return
+	}
+
+	app.WriteHttpBodyJson(w, http.StatusOK, collections)
+}
+
 func getPublicCollectionsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

@@ -138,6 +138,43 @@ func findCollectionsByCreatorId(ctx context.Context, tx pgx.Tx, creatorId ulid.U
 	return collections, nil
 }
 
+func findAddedCollectionsByArticleIdAndCreatorId(ctx context.Context, tx pgx.Tx, articleId, creatorId ulid.ULID) (collections []*Collection, err error) {
+	q := `
+	SELECT c.*
+	FROM collections c
+	WHERE EXISTS (
+	  SELECT ca.id
+	  FROM collection_articles ca
+	  WHERE EXISTS (
+		SELECT a.id
+		FROM articles a
+		WHERE
+		  a.id = $2 AND
+		  a.id = ca.article_id AND
+		  a.deleted_at IS NULL
+	  ) AND
+	    c.id = ca.collection_id
+	) AND EXISTS (
+	  SELECT u.id
+	  FROM users u
+	  WHERE 
+	    u.id = $1 AND
+		u.id = c.creator_id AND
+		u.deleted_at IS NULL
+	) AND
+	  c.deleted_at IS NULL
+	ORDER BY c.created_at DESC
+	`
+
+	collections = []*Collection{}
+	if err = pgxscan.Select(ctx, tx, &collections, q, creatorId, articleId); err != nil {
+		log.Err(err).Msg("Failed to find added collections by article id and creator id")
+		return
+	}
+
+	return collections, nil
+}
+
 func findPublicCollections(ctx context.Context, tx pgx.Tx) (collections []*CollectionMetadata, err error) {
 	q := `
 	SELECT c.*, u.name creator_name, COUNT(1) number_of_articles

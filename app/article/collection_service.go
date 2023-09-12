@@ -142,6 +142,33 @@ func getOwnCollections(ctx context.Context, creatorId ulid.ULID) (collections []
 	return collections, nil
 }
 
+func getAddedCollections(ctx context.Context, creatorId ulid.ULID, articleIdStr string) (collections []*Collection, err error) {
+	articleId, err := validateArticleId(articleIdStr)
+	if err != nil {
+		return
+	}
+
+	tx, err := pool.Begin(ctx)
+	if err != nil {
+		log.Err(err).Msg("Failed to get added collections")
+		return
+	}
+
+	defer tx.Rollback(ctx)
+
+	collections, err = findAddedCollectionsByArticleIdAndCreatorId(ctx, tx, articleId, creatorId)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		log.Err(err).Msg("Failed to get added collections")
+		return
+	}
+
+	return collections, nil
+}
+
 func getPublicCollections(ctx context.Context) (collections []*CollectionMetadata, err error) {
 	tx, err := pool.Begin(ctx)
 	if err != nil {
