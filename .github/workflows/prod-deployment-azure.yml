@@ -43,6 +43,7 @@ jobs:
         with:
           containerAppName: lexicapi-prod
           targetPort: 8081
+          disableTelemetry: true
           resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
           imageToDeploy: ${{ secrets.REGISTRY }}/${{ secrets.REGISTRY_IMAGE }}:stable
           registryUrl: ${{ secrets.REGISTRY }}
