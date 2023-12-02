@@ -45,7 +45,7 @@ jobs:
           imageToDeploy: ${{ secrets.REGISTRY }}/${{ secrets.REGISTRY_IMAGE }}:stable
           registryUrl: ${{ secrets.REGISTRY }}
           registryUsername: ${{ secrets.REGISTRY_USER }}
-          registryPassword: ${{ secrets.REGISTRY_PASSWORD }}
+          registryPassword: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
           
       
       - name: Get Release Date
