@@ -1,0 +1,61 @@
+name: Workflow for Production Environment Deployment (Azure)
+
+on:
+  workflow_dispatch:
+      
+env:
+  CONFIG_ENV: ${{ secrets.CONFIG_ENV }}
+  TARGET_PLATFORMS: ${{ secrets.TARGET_PLATFORMS }}
+  REGISTRY: ${{ secrets.REGISTRY }}
+  REGISTRY_USER: ${{ secrets.REGISTRY_USER }}
+  REGISTRY_IMAGE: ${{ secrets.REGISTRY_IMAGE }}
+  REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+      
+jobs:
+  Prod-Deployment-Azure:
+    name: Production Deployment (Azure)
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v3
+      
+      - name: Sign in to Container Registry
+        run: echo $REGISTRY_ACCESS_TOKEN | docker login -u $REGISTRY_USER --password-stdin $REGISTRY
+      
+      - name: Build and Tag Image
+        run: |
+          docker build \
+            --platform $TARGET_PLATFORMS \
+            -t "$REGISTRY/$REGISTRY_IMAGE:${{ github.sha }}" .
+          docker tag "$REGISTRY/$REGISTRY_IMAGE:${{ github.sha }}" "$REGISTRY/$REGISTRY_IMAGE:stable"
+        
+      - name: Publish to Container Registry
+        run: docker push "$REGISTRY/$REGISTRY_IMAGE:stable"
+
+      - name: Login to Azure
+        uses: Azure/login@v1.5.0
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+      - name: Deploy on Azure Container App
+        uses: Azure/container-apps-deploy-action@v1
+        with:
+          containerAppName: lexicapi-prod
+          imageToDeploy: ${{ secrets.REGISTRY }}/${{ secrets.REGISTRY_IMAGE }}:stable
+          registryUrl: ${{ secrets.REGISTRY }}
+          registryUsername: ${{ secrets.REGISTRY_USER }}
+          registryPassword: ${{ secrets.REGISTRY_PASSWORD }}
+          
+      
+      - name: Get Release Date
+        id: get_release_date
+        run: echo "RELEASE_DATE=$(TZ='Asia/Jakarta' date +'%A %d-%m-%Y %T WIB')" >> "$GITHUB_OUTPUT"
+      
+      - name: Mark as Stable
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          body: "Stable release updated at ${{ steps.get_release_date.outputs.RELEASE_DATE }}"
+          token: ${{ secrets.GH_TOKEN }}
+          tag: stable
