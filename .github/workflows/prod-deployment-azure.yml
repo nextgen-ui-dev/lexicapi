@@ -42,6 +42,7 @@ jobs:
         uses: Azure/container-apps-deploy-action@v1
         with:
           containerAppName: lexicapi-prod
+          targetPort: 8081
           resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
           imageToDeploy: ${{ secrets.REGISTRY }}/${{ secrets.REGISTRY_IMAGE }}:stable
           registryUrl: ${{ secrets.REGISTRY }}
