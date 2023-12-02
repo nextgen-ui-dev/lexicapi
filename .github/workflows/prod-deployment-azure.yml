@@ -42,6 +42,7 @@ jobs:
         uses: Azure/container-apps-deploy-action@v1
         with:
           containerAppName: lexicapi-prod
+          containerAppEnvironment: lexicapi-prod-env
           targetPort: 8081
           disableTelemetry: true
           resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
